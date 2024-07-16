@@ -5,7 +5,7 @@ using namespace Helpers;
 
 void RPCProvider::RecvToBuffer(size_t size) {
   size_t total = 0;
-  uint8_t* ptr = Buffer.data();
+  char* ptr = Buffer.data();
 
   while (total < size) {
     int ret = recv(Conn.GetFd(), ptr + total, size - total, 0);

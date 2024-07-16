@@ -19,7 +19,7 @@ void Defer::Cancel() {
   Deferred = [] {};
 }
 
-std::string IpToString(AddrType addr) {
+std::string Roki::Helpers::IpToString(AddrType addr) {
   sockaddr_in sa;
   sa.sin_addr.s_addr = addr;
 
@@ -32,7 +32,7 @@ std::string IpToString(AddrType addr) {
   return str;
 }
 
-AddrType IpFromString(const std::string& str) {
+AddrType Roki::Helpers::IpFromString(const std::string& str) {
 #define MSG "Failed to parse addr from string via inet_pton()"
   sockaddr_in sa;
 
@@ -48,7 +48,7 @@ AddrType IpFromString(const std::string& str) {
 #undef MSG
 }
 
-static void SetSigMask(int how) {
+static void Roki::Helpers::SetSigMask(int how) {
   sigset_t newSet;
 
   sigfillset(&newSet);

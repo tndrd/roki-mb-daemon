@@ -1,6 +1,9 @@
 #pragma once
 
+#include <functional>
+#include <mutex>
 #include <thread>
+#include <vector>
 
 #include "HwUtils.hpp"
 
@@ -15,8 +18,7 @@ class FirmwareFSM {
 
    public:
     FSMException(std::string operation, FWState got,
-                 const std::vector<FWState> expected)
-        : std::runtime_error{ComposeMsg(operation, got, expected)} {}
+                 const std::vector<FWState> expected);
 
     virtual ~FSMException() = default;
   };
@@ -32,11 +34,11 @@ class FirmwareFSM {
 
  private:
   struct Routines {
-    static constexpr char* Empty = "Nothing";
-    static constexpr char* ChipReset = "Chip reset";
-    static constexpr char* FWFlashing = "Firmware flashing";
-    static constexpr char* FWStarting = "Firmware starting";
-    static constexpr char* FaultTransition = "Fault Transition";
+    static constexpr const char* Empty = "Nothing";
+    static constexpr const char* ChipReset = "Chip reset";
+    static constexpr const char* FWFlashing = "Firmware flashing";
+    static constexpr const char* FWStarting = "Firmware starting";
+    static constexpr const char* FaultTransition = "Fault Transition";
   };
 
   FWState State;

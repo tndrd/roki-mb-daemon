@@ -1,5 +1,7 @@
 #include "FirmwareFSM.hpp"
+
 using namespace Roki;
+using namespace Roki::Helpers;
 
 std::string FirmwareFSM::FSMException::ComposeMsg(
     std::string operation, FWState got, const std::vector<FWState> expected) {
@@ -14,6 +16,8 @@ std::string FirmwareFSM::FSMException::ComposeMsg(
   }
 
   msg += StateToStr(expected.back());
+
+  return msg;
 }
 
 FirmwareFSM::FSMException::FSMException(std::string operation, FWState got,
@@ -21,7 +25,7 @@ FirmwareFSM::FSMException::FSMException(std::string operation, FWState got,
     : std::runtime_error{ComposeMsg(operation, got, expected)} {}
 
 void FirmwareFSM::SetState(FWState state) {
-  std::lock_guard _{*Mutex};
+  LockGuard _{*Mutex};
   State = state;
   RoutineName = Routines::Empty;
 }
@@ -70,12 +74,12 @@ const char* FirmwareFSM::StateToStr(FWState state) {
 }
 
 auto FirmwareFSM::GetState() const -> FWState {
-  std::lock_guard _{*Mutex};
+  LockGuard _{*Mutex};
   return State;
 }
 
 std::string FirmwareFSM::GetPort() const {
-  std::lock_guard _{*Mutex};
+  LockGuard _{*Mutex};
   return MbPort;
 }
 

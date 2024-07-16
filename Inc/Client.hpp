@@ -7,9 +7,6 @@
 
 namespace Roki {
 
-using Helpers::Defer;
-using Helpers::UniqueValue;
-
 class Client {
  private:
   static constexpr uint8_t ErrorCode = RPCDefs::ProcIDs::Error;
@@ -17,10 +14,10 @@ class Client {
  public:
   class Factory {
     ClientSocket Socket;
-    AddrType INAddr;
+    Helpers::AddrType INAddr;
 
    public:
-    Factory(AddrType addr, size_t port);
+    Factory(Helpers::AddrType addr, Helpers::PortType port);
     Client Connect();
   };
 
@@ -45,7 +42,7 @@ class Client {
  public:
   template <typename Proc>
   typename Proc::Responce Call(const typename Proc::Request& request) {
-    RPC.PackMsg(request);
+    RPC.PackMsg(Proc::ID, request);
     RPC.SendPackage();
 
     auto header = RPC.RecvPackage();

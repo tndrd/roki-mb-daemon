@@ -1,5 +1,3 @@
-#pragma once
-
 #include "HwUtils.hpp"
 
 #define RESET_PIN 6
@@ -31,7 +29,7 @@ void HwUtils::ExecuteChildRoutine(const std::string& cmd, int outFd) {
   }
 }
 
-void HwUtils::Execute(const std::string& cmd, int outFd = STDOUT_FILENO) {
+void HwUtils::Execute(const std::string& cmd, int outFd) {
   int ret = fork();
 
   if (ret < 0)

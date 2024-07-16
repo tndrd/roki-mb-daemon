@@ -6,9 +6,9 @@ add_subdirectory(Deps/googletest)
 include_directories(Inc/)
 
 # Provide pigpio
-find_library(pigpio)
+find_library(PIGPIO_FOUND pigpio)
 
-if(NOT pigpio)
+if(NOT PIGPIO_FOUND)
   add_library(pigpio Src/PiGpioStub.cpp)
 else()
   add_compile_definitions(PIGPIO_FOUND)
@@ -51,3 +51,4 @@ target_link_libraries(CLI PUBLIC DaemonTools Client)
 
 # Build Executables
 add_executable(${CLI_EXECUTABLE} Executables/CLIMain.cpp)
+target_link_libraries(${CLI_EXECUTABLE} PUBLIC CLI)

@@ -87,12 +87,12 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
 
   if (!logfile.good()) {
     PutError(writeFd, "std::ofstream: "s + strerror(errno));
-    return;
+    return {};
   }
 
   if (daemon(0, 0) < 0) {
     PutError(writeFd, "daemon()"s + strerror(errno));
-    return;
+    return {};
   }
 
   std::unique_ptr<Server> server = nullptr;
@@ -102,7 +102,7 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
                                       logfile);
   } catch (std::exception& e) {
     PutError(writeFd, "Failed to create server: "s + strerror(errno));
-    return;
+    return {};
   }
 
   fdGuard.Cancel();

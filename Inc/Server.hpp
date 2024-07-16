@@ -20,17 +20,17 @@ namespace Roki {
 
 class HelloMessage {
  private:
-  size_t Port;
+  Helpers::PortType Port;
 
  private:
   HelloMessage() = default;
 
  public:
-  HelloMessage(size_t port);
+  HelloMessage(Helpers::PortType port);
 
   static HelloMessage Recv(int fd);
   void Send(int fd);
-  size_t GetPort() const;
+  Helpers::PortType GetPort() const;
 };
 
 class Server {
@@ -40,7 +40,7 @@ class Server {
  private:
   static constexpr uint8_t ErrCode = RPCDefs::ProcIDs::Error;
   static constexpr size_t StartingPort = 8080;
-  static constexpr char* MainThreadPrefix = "Main thread: ";
+  static constexpr const char* MainThreadPrefix = "Main thread: ";
 
  public:
   using PortMsgT = size_t;
@@ -66,19 +66,19 @@ class Server {
   typename Proc::Responce HandlerImpl(const typename Proc::Request& request);
 
   template <typename Proc>
-  void GenericHandler(const RPCProvider::MsgHeader& header);
-  void DispatchPackage(const RPCProvider::MsgHeader& header);
+  void GenericHandler(RPCProvider& rpc, const RPCProvider::MsgHeader& header);
+  void DispatchPackage(RPCProvider& rpc, const RPCProvider::MsgHeader& header);
 
   static void BlockAllSignals();
   ServerSocket CreateHandlerSocket();
 
-  void HandlerRoutine(ServerSocket&& newSocket, HandlerId id);
-  void ShutdownRoutine();
-  void CleanupRoutine();
+  static void HandlerRoutine(Server* self, ServerSocket&& newSocket, HandlerId id);
+  static void CleanupRoutine(Server* self);
 
+  void ShutdownRoutine();
  public:
   void Run();
-  Server(AddrType addr, size_t port, size_t backlog, std::ostream& logger);
+  Server(Helpers::AddrType addr, Helpers::PortType port, size_t backlog, std::ostream& logger);
 };  // namespace Roki
 
 }  // namespace Roki

@@ -11,6 +11,7 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include <mutex>
 #include <utility>
 
 namespace Roki {
@@ -75,7 +76,8 @@ class PrefixException : public Base {
  public:
   template <typename... Args>
   PrefixException(const std::string& prefix, Args&&... args)
-      : Base{std::forward(args)}, Buffer{prefix + ": " + Base::what()} {}
+      : Base{std::forward<Args>(args)...},
+        Buffer{prefix + ": " + Base::what()} {}
 
   const char* what() const noexcept override { return Buffer.c_str(); }
 
@@ -104,15 +106,15 @@ using AddrType = decltype(sockaddr_in::sin_addr.s_addr);
 using PortType = decltype(sockaddr_in::sin_port);
 
 std::string IpToString(AddrType addr);
-
 AddrType IpFromString(const std::string& str);
-
 static void SetSigMask(int how);
 
 struct TermTools {
-  static void MakeRed() { std::cout << "\033[91m"; }
-  static void MakeDefault() { std::cout << "\033[39m"; }
+  static void MakeRed();
+  static void MakeDefault();
 };
+
+using LockGuard = std::lock_guard<std::mutex>;
 
 }  // namespace Helpers
 }  // namespace Roki

@@ -4,7 +4,7 @@ using namespace Roki;
 
 using namespace Helpers;
 
-Client::Factory::Factory(AddrType addr, size_t port)
+Client::Factory::Factory(AddrType addr, PortType port)
     : Socket{addr, port}, INAddr{addr} {}
 
 Client Client::Factory::Connect() {

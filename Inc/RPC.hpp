@@ -15,13 +15,13 @@ class RPCProvider {
     std::string Msg = "OK";
     uint8_t ProcId;
 
-    const uint8_t* Data = nullptr;
+    const char* Data = nullptr;
     uint8_t Size = 0;
   };
 
  private:
   Connection Conn;
-  std::array<uint8_t, BufSize> Buffer;
+  std::array<char, BufSize> Buffer;
   uint8_t ErrCode;
 
  private:
@@ -44,7 +44,6 @@ class RPCProvider {
   void SendPackage();
 
  public:
-  RPCProvider(Connection&& connection, uint8_t errCode)
-      : Conn{std::move(connection)}, ErrCode{errCode} {}
+  RPCProvider(Connection&& connection, uint8_t errCode);
 };
 }  // namespace Roki

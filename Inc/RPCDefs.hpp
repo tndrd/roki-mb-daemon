@@ -44,7 +44,7 @@ struct RPCDefs {
 
       Byte GetPackedSize() const;
       void Serialize(Byte* ptr) const;
-      static String Deserialize(Byte* ptr);
+      static String Deserialize(const Byte* ptr);
 
       std::string ToCxxStr();
     };

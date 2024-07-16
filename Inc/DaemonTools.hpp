@@ -17,7 +17,7 @@ class DaemonTools {
 
  public:
   struct Params {
-    size_t Port;
+    Helpers::PortType Port;
     size_t Backlog;
     std::string LogPath;
   };

@@ -22,6 +22,9 @@ const char* RPCDefs::ProcIDs::ToStr(Byte id) {
     CASEGEN(DebugBlock);
 
 #undef CASEGEN
+
+    default:
+      throw std::runtime_error("Unknown procedure id: " + std::to_string(id));
   }
 }
 
@@ -30,6 +33,7 @@ auto RPCDefs::Messages::Empty::GetPackedSize() const -> Byte { return 0; }
 void RPCDefs::Messages::Empty::Serialize(Byte* ptr) const { assert(ptr); };
 auto RPCDefs::Messages::Empty::Deserialize(const Byte* ptr) -> Empty {
   assert(ptr);
+  return {};
 }
 
 auto RPCDefs::Messages::String::GetPackedSize() const -> Byte {
@@ -44,11 +48,13 @@ void RPCDefs::Messages::String::Serialize(Byte* ptr) const {
   memcpy(ptr + 1, Data, Size);
 }
 
-auto RPCDefs::Messages::String::Deserialize(Byte* ptr) -> String {
+auto RPCDefs::Messages::String::Deserialize(const Byte* ptr) -> String {
   assert(ptr);
   String newString;
   newString.Size = ptr[0];
   newString.Data = ptr + 1;
+
+  return newString;
 }
 
 std::string RPCDefs::Messages::String::ToCxxStr() {

@@ -4,8 +4,13 @@
 #pragma GCC diaginostic error "Executable name is not specified"
 
 // Define symbol to supress IntelliSense error
-#define CLI_EXECUTABLE "NAME"
+#define CLI_EXECUTABLE NAME
 #endif
+
+#define STRINGIFY(a) #a
+#define XSTRINGIFY(a) STRINGIFY(a)
+
+#define EXECUTABLE_NAME XSTRINGIFY(CLI_EXECUTABLE)
 
 #define TAB " - "
 
@@ -23,7 +28,7 @@ size_t DaemonCLI::SyntaxException::GetTokenIndex() const noexcept {
 
 const std::string& DaemonCLI::GetNextToken() {
   if (CurrentToken == Tokens.size())
-    throw SyntaxException{CurrentToken, "Unexpected end of command"};
+    throw SyntaxException{PrevToken, "Unexpected end of command"};
   PrevToken = CurrentToken;
   return Tokens[CurrentToken++];
 }
@@ -35,7 +40,7 @@ void DaemonCLI::MakeErrorMessage(const std::string& msg) const noexcept{
 void DaemonCLI::MakeSyntaxErrorMessage(size_t tokenInd,
                                        const std::string& msg) const noexcept {
   std::cout << "Syntax error: " << msg << std::endl;
-  std::cout << "Reason: \"";
+  std::cout << "Reason: ";
 
   for (int i = 0; i < Tokens.size(); ++i) {
     if (i == tokenInd) {
@@ -57,7 +62,7 @@ void DaemonCLI::MakeSyntaxErrorMessage(size_t tokenInd,
 
   PrintUsage();
 
-  std::cout << "See \"" << CLI_EXECUTABLE << " " << KeyWords::Help << "\""
+  std::cout << "See \"" << EXECUTABLE_NAME << " " << KeyWords::Help << "\""
             << std::endl;
 }
 
@@ -90,8 +95,8 @@ void DaemonCLI::Run() try {
     UnknownToken();
   }
 
-  if (cmd == KeyWords::Help) DoHelp();
-  if (cmd == KeyWords::Status) DoStatus();
+  if (cmd == KeyWords::Help) return DoHelp();
+  if (cmd == KeyWords::Status) return DoStatus();
 
   UnknownToken();
 } catch (SyntaxException& e) {
@@ -159,11 +164,11 @@ void DaemonCLI::DoDaemonStop() {
   client.Call<Client::Proc::Shutdown>({});
 }
 
-std::ostream& DaemonCLI::PutDescription(const TokenBuf& tokens,
+void DaemonCLI::PutDescription(const TokenBuf& tokens,
                                         const std::string& description) {
   assert(tokens.size() > 0);
 
-  std::cout << TAB "\"" CLI_EXECUTABLE " ";
+  std::cout << TAB "\"" EXECUTABLE_NAME " ";
 
   for (int i = 0; i < tokens.size() - 1; ++i) std::cout << tokens[i] << " ";
 
@@ -173,7 +178,7 @@ std::ostream& DaemonCLI::PutDescription(const TokenBuf& tokens,
 }
 
 void DaemonCLI::PrintUsage() const {
-  std::cout << "Usage: " CLI_EXECUTABLE "<COMMAND> <ARGS>" << std::endl;
+  std::cout << "Usage: " EXECUTABLE_NAME " <COMMAND> <ARGS>" << std::endl;
 }
 
 void DaemonCLI::DoHelp() {
@@ -184,7 +189,7 @@ void DaemonCLI::DoHelp() {
                "\n"
             << std::endl;
   PrintUsage();
-  std::cout << "List of available commands: " << std::endl;
+  std::cout << std::endl << "List of available commands: " << std::endl;
 
   PutDescription({KW::Chip, KW::Start}, "Starts firmware");
   PutDescription({KW::Chip, KW::Stop}, "Stops firmware");
@@ -195,6 +200,8 @@ void DaemonCLI::DoHelp() {
 
   PutDescription({KW::Help}, "Prints this text");
   PutDescription({KW::Status}, "Prints status info on daemon and firmware");
+
+  std::cout << std::endl;
 }
 
 void DaemonCLI::DoStatus() {

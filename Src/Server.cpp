@@ -5,7 +5,7 @@ using namespace Helpers;
 
 using ForcedUnwind = abi::__forced_unwind;
 
-HelloMessage::HelloMessage(size_t port) : Port{port} {}
+HelloMessage::HelloMessage(PortType port) : Port{port} {}
 
 void HelloMessage::Send(int fd) {
   char* buf = reinterpret_cast<char*>(&Port);
@@ -24,7 +24,7 @@ void HelloMessage::Send(int fd) {
   }
 }
 
-size_t HelloMessage::GetPort() const { return Port; }
+PortType HelloMessage::GetPort() const { return Port; }
 
 auto HelloMessage::Recv(int fd) -> HelloMessage {
   HelloMessage msg;
@@ -36,7 +36,7 @@ auto HelloMessage::Recv(int fd) -> HelloMessage {
   while (total < size) {
     int ret = recv(fd, &buf[total], total - size, 0);
 
-    if (ret < 0) throw FEXCEPT(ErrnoException, "Failed to send()", errno);
+    if (ret < 0) throw FEXCEPT(ErrnoException, "Failed to recv()", errno);
 
     assert(ret != 0);
 
@@ -46,42 +46,49 @@ auto HelloMessage::Recv(int fd) -> HelloMessage {
   return msg;
 }
 
-void Server::CleanupRoutine() {
+void Server::CleanupRoutine(Server* self) {
   static std::string prefix = "Collector: ";
+  assert(self);
 
-  std::unique_lock lk(JoinablesMutex);
+  Server& server = *self;
+
+  std::unique_lock<std::mutex> lk(server.JoinablesMutex);
 
   while (1) {
-    ReadyToJoin.wait(lk, [this] { return !Joinables.empty() || DoShutdown; });
+    server.ReadyToJoin.wait(lk, [&server] {
+      return !server.Joinables.empty() || server.DoShutdown;
+    });
 
-    if (DoShutdown && Handlers.empty()) break;
+    if (server.DoShutdown && server.Handlers.empty()) break;
 
-    while (!Joinables.empty()) {
-      size_t id = Joinables.front();
+    while (!server.Joinables.empty()) {
+      size_t id = server.Joinables.front();
 
-      auto& thread = Handlers.at(id);
+      auto& thread = server.Handlers.at(id);
       assert(thread.joinable());
       thread.join();
-      Handlers.erase(id);
-      Joinables.pop();
+      server.Handlers.erase(id);
+      server.Joinables.pop();
 
-      Logger << prefix << "Closed thread #" << id << std::endl;
+      server.Logger << prefix << "Closed thread #" << id << std::endl;
     }
   }
 }
 
 template <typename Proc>
-void Server::GenericHandler(const RPCProvider::MsgHeader& header) {
+void Server::GenericHandler(RPCProvider& rpc,
+                            const RPCProvider::MsgHeader& header) {
   auto request = Proc::Request::Deserialize(header.Data);
   auto responce = HandlerImpl<Proc>(request);
   rpc.PackMsg(Proc::ID, responce);
 }
 
-void Server::DispatchPackage(const RPCProvider::MsgHeader& header) {
+void Server::DispatchPackage(RPCProvider& rpc,
+                             const RPCProvider::MsgHeader& header) {
   switch (header.ProcId) {
-#define CASEGEN(Proc)                                           \
-  case RPCDefs::Procedures::Proc::ID:                           \
-    GenericHandler<typename RPCDefs::Procedures::Proc>(header); \
+#define CASEGEN(Proc)                                                \
+  case RPCDefs::Procedures::Proc::ID:                                \
+    GenericHandler<typename RPCDefs::Procedures::Proc>(rpc, header); \
     break;
 
     CASEGEN(GetStatus);
@@ -102,13 +109,18 @@ void Server::BlockAllSignals() {
   pthread_sigmask(SIG_BLOCK, &set, NULL);
 }
 
-void Server::HandlerRoutine(ServerSocket&& newSocket, HandlerId id) {
+void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
+                            HandlerId id) {
   BlockAllSignals();
-  Helpers::Defer _{[this, id]() {
-    JoinablesMutex.lock();
-    Joinables.push(id);
-    ReadyToJoin.notify_all();
-    JoinablesMutex.unlock();
+  assert(self);
+
+  Server& server = *self;
+
+  Helpers::Defer _{[&server, id]() {
+    server.JoinablesMutex.lock();
+    server.Joinables.push(id);
+    server.ReadyToJoin.notify_all();
+    server.JoinablesMutex.unlock();
   }};
 
   // Disable cancellation for a while
@@ -118,20 +130,20 @@ void Server::HandlerRoutine(ServerSocket&& newSocket, HandlerId id) {
   std::string prefix = "Handler #" + std::to_string(id) + ": ";
   ServerSocket socket = std::move(newSocket);
 
-  Logger << prefix << "Waiting for connection on port " << socket.GetPort()
-         << "..." << std::endl;
+  server.Logger << prefix << "Waiting for connection on port "
+                << socket.GetPort() << "..." << std::endl;
 
   // TODO implement timeout
   Connection conn = socket.Accept();
 
-  Logger << prefix << "Accepted connection from " << conn.GetAddr()
-         << std::endl;
+  server.Logger << prefix << "Accepted connection from " << conn.GetAddr()
+                << std::endl;
 
   RPCProvider rpc{std::move(conn), ErrCode};
   bool connOk = true;
   auto flagSetter = [&connOk]() { connOk = false; };
 
-  while (!DoShutdown) try {
+  while (!server.DoShutdown) try {
       // enable cancellation on first iteration
       static auto _ = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
@@ -139,13 +151,13 @@ void Server::HandlerRoutine(ServerSocket&& newSocket, HandlerId id) {
       auto header = rpc.RecvPackage();
       recvGuard.Cancel();
 
-      DispatchPackage(header);
+      server.DispatchPackage(rpc, header);
 
       Defer sendGuard{flagSetter};
       rpc.SendPackage();
       sendGuard.Cancel();
     } catch (std::exception& e) {
-      Logger << prefix << "Exception occured: " << e.what() << std::endl;
+      server.Logger << prefix << "Exception occured: " << e.what() << std::endl;
 
       if (connOk) {
         rpc.PackError(e.what());
@@ -153,7 +165,7 @@ void Server::HandlerRoutine(ServerSocket&& newSocket, HandlerId id) {
       } else
         break;
     } catch (ForcedUnwind&) {
-      Logger << prefix << "Shutdown requested" << std::endl;
+      server.Logger << prefix << "Shutdown requested" << std::endl;
 
       if (connOk) {
         rpc.PackError("Server closed");
@@ -162,7 +174,7 @@ void Server::HandlerRoutine(ServerSocket&& newSocket, HandlerId id) {
 
       throw;  // It is mandatory for pthread_cancel unwinding
     } catch (...) {
-      Logger << prefix << "Unknown exception" << std::endl;
+      server.Logger << prefix << "Unknown exception" << std::endl;
 
       if (connOk) {
         rpc.PackError("Unknown exception");
@@ -209,7 +221,7 @@ void Server::Run() {
   sigaddset(&set, SIGINT);
   pthread_sigmask(SIG_UNBLOCK, &set, NULL);
 
-  std::thread cleanup{CleanupRoutine, this};
+  std::thread cleanup(Server::CleanupRoutine, this);
 
   while (1) {
     try {
@@ -224,7 +236,8 @@ void Server::Run() {
              << newSocket.GetPort() << "...";
 
       size_t newId = CurrentId++;
-      std::thread newThread{HandlerRoutine, this, std::move(newSocket), newId};
+      std::thread newThread(Server::HandlerRoutine, this, std::move(newSocket),
+                            newId);
       Handlers.insert({newId, std::move(newThread)});
 
       HelloMessage hello{newSocket.GetPort()};
@@ -248,5 +261,14 @@ void Server::Run() {
   cleanup.join();
 }
 
-Server::Server(AddrType addr, size_t port, size_t backlog, std::ostream& logger)
+Server::Server(AddrType addr, Helpers::PortType port, size_t backlog, std::ostream& logger)
     : Socket{addr, port, backlog}, Logger{logger} {}
+
+// Handlers implementation
+
+template <typename Proc>
+typename Proc::Responce Server::HandlerImpl(
+    const typename Proc::Request& request) {
+  std::cout << RPCDefs::ProcIDs::ToStr(Proc::ID) << std::endl;
+  return {};
+}

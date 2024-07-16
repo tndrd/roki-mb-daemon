@@ -32,7 +32,7 @@ class ServerSocket {
   Helpers::DescriptorWrapper SockFd;
 
   std::string ServerAddr;
-  size_t ServerPort;
+  Helpers::PortType ServerPort;
   size_t Backlog;
 
  public:
@@ -42,14 +42,13 @@ class ServerSocket {
   ServerSocket(Helpers::AddrType addr, size_t port, size_t backlog);
   Connection Accept(bool nonBlock = false);
 
-  size_t GetPort() const;
+  Helpers::PortType GetPort() const;
   std::string GetAddr() const;
 };
 
 class ClientSocket {
  private:
   std::string ServerAddr;
-  size_t ServerPort;
 
   Helpers::AddrType AddrIn;
   Helpers::PortType PortIn;
@@ -59,7 +58,7 @@ class ClientSocket {
 
   Connection Connect(bool nonBlock = false);
 
-  size_t GetPort() const;
+  Helpers::PortType GetPort() const;
   std::string GetAddr() const;
 };
 

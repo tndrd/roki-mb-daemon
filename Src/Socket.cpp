@@ -36,13 +36,14 @@ ServerSocket::ServerSocket(AddrType addr, size_t port, size_t backlog) {
     throw FEXCEPT(ErrnoException, "listen() failed", errno);
 }
 
-Connection ServerSocket::Accept(bool nonBlock = false) {
+Connection ServerSocket::Accept(bool nonBlock) {
   sockaddr_in sa;
   socklen_t addrlen = sizeof(sa);
   int peerFd = accept4(SockFd.Get(), reinterpret_cast<sockaddr*>(&sa), &addrlen,
                        nonBlock ? SOCK_NONBLOCK : 0);
 
-  if (peerFd < 0) throw FEXCEPT(ErrnoException, "Failed to accept connection");
+  if (peerFd < 0)
+    throw FEXCEPT(ErrnoException, "Failed to accept connection", errno);
 
   DescriptorWrapper retFd{peerFd};
   std::string addrStr = IpToString(sa.sin_addr.s_addr);
@@ -50,16 +51,13 @@ Connection ServerSocket::Accept(bool nonBlock = false) {
   return {std::move(retFd), addrStr, ServerPort, nonBlock};
 }
 
-size_t ServerSocket::GetPort() const { return ServerPort; }
+PortType ServerSocket::GetPort() const { return ServerPort; }
 std::string ServerSocket::GetAddr() const { return ServerAddr; }
 
 ClientSocket::ClientSocket(AddrType addr, PortType port)
-    : AddrIn{addr},
-      PortIn{htons(port)},
-      ServerAddr{IpToString(addr)},
-      ServerPort{port} {}
+    : AddrIn{addr}, PortIn{htons(port)}, ServerAddr{IpToString(addr)} {}
 
-Connection ClientSocket::Connect(bool nonBlock = false) {
+Connection ClientSocket::Connect(bool nonBlock) {
   int newFd = socket(AF_INET, SOCK_STREAM | (nonBlock ? SOCK_NONBLOCK : 0), 0);
 
   if (newFd < 0)
@@ -75,8 +73,8 @@ Connection ClientSocket::Connect(bool nonBlock = false) {
   if (connect(newFd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) < 0)
     throw FEXCEPT(ErrnoException, "Failed to connect", errno);
 
-  return {std::move(retFd), ServerAddr, ServerPort, nonBlock};
+  return {std::move(retFd), ServerAddr, PortIn, nonBlock};
 }
 
-size_t ClientSocket::GetPort() const { return ServerPort; }
+PortType ClientSocket::GetPort() const { return PortIn; }
 std::string ClientSocket::GetAddr() const { return ServerAddr; }
