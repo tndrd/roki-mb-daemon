@@ -33,6 +33,7 @@ class DaemonCLI {
     DECLARE(Stop, "stop");
     DECLARE(Status, "status");
     DECLARE(Help, "help");
+    DECLARE(Debug, "debug");
 
 #undef DECLARE
   };
@@ -48,8 +49,7 @@ class DaemonCLI {
   void MakeSyntaxErrorMessage(size_t tokenInd,
                               const std::string& msg) const noexcept;
   void UnknownToken();
-  void PutDescription(const TokenBuf& tokens,
-                               const std::string& description);
+  void PutDescription(const TokenBuf& tokens, const std::string& description);
   void PrintUsage() const;
   void Run();
   void CheckFile(const std::string& path);
@@ -60,6 +60,7 @@ class DaemonCLI {
   void DoChipStop();
   void DoChipFlash(const std::string& path);
   void DoDaemonStart();
+  void DoDaemonDebug();
   void DoDaemonStop();
   void DoHelp();
   void DoStatus();

@@ -46,5 +46,6 @@ class DaemonTools {
   static Params GetParams();
   static bool IsRunning();
   void Launch();
+  void RunHere();
 };
 }  // namespace Roki

@@ -33,7 +33,7 @@ const std::string& DaemonCLI::GetNextToken() {
   return Tokens[CurrentToken++];
 }
 
-void DaemonCLI::MakeErrorMessage(const std::string& msg) const noexcept{
+void DaemonCLI::MakeErrorMessage(const std::string& msg) const noexcept {
   std::cout << "Error: " << msg << std::endl;
 }
 
@@ -91,6 +91,7 @@ void DaemonCLI::Run() try {
 
     if (cmd == KeyWords::Start) return DoDaemonStart();
     if (cmd == KeyWords::Stop) return DoDaemonStop();
+    if (cmd == KeyWords::Debug) return DoDaemonDebug();
 
     UnknownToken();
   }
@@ -164,8 +165,10 @@ void DaemonCLI::DoDaemonStop() {
   client.Call<Client::Proc::Shutdown>({});
 }
 
+void DaemonCLI::DoDaemonDebug() { DaemonTools{}.RunHere(); }
+
 void DaemonCLI::PutDescription(const TokenBuf& tokens,
-                                        const std::string& description) {
+                               const std::string& description) {
   assert(tokens.size() > 0);
 
   std::cout << TAB "\"" EXECUTABLE_NAME " ";
@@ -200,6 +203,8 @@ void DaemonCLI::DoHelp() {
 
   PutDescription({KW::Help}, "Prints this text");
   PutDescription({KW::Status}, "Prints status info on daemon and firmware");
+
+  PutDescription({KW::Daemon, KW::Debug}, "Launches server in this session");
 
   std::cout << std::endl;
 }

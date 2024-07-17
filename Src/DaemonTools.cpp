@@ -101,7 +101,7 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
     server = std::make_unique<Server>(INADDR_ANY, params.Port, params.Backlog,
                                       logfile);
   } catch (std::exception& e) {
-    PutError(writeFd, "Failed to create server: "s + strerror(errno));
+    PutError(writeFd, "Failed to create server: "s + e.what());
     return {};
   }
 
@@ -158,4 +158,12 @@ void DaemonTools::Launch() {
 
   if (!result.Ok)
     throw FEXCEPT(std::runtime_error, "Failed to run daemon: " + result.Msg);
+}
+
+void DaemonTools::RunHere() {
+  if (IsRunning()) throw FEXCEPT(std::runtime_error, "Daemon already running");
+
+  auto params = GetParams();
+
+  Server server{INADDR_ANY, params.Port, params.Backlog, std::cout};
 }
