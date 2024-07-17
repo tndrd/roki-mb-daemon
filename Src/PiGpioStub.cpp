@@ -6,11 +6,20 @@
 #include <cassert>
 #include <stdexcept>
 
-// Make functions throw on calls
-#define NOT_IMPLEMENTED \
-  { throw std::runtime_error("Not implemented"); }
+#include "Helpers.hpp"
 
-int gpioInitialize() NOT_IMPLEMENTED;
-int gpioTerminate() NOT_IMPLEMENTED;
-int gpioSetMode(int, int) NOT_IMPLEMENTED;
-int gpioWrite(int, int) NOT_IMPLEMENTED;
+using namespace Roki::Helpers;
+
+#ifndef PIGPIO_IGNORE
+// Make functions throw on calls
+#define STUB_IMPL \
+  { throw FEXCEPT(std::runtime_error, "Not implemented"); }
+#else
+#define STUB_IMPL \
+  { return {}; }
+#endif
+
+int gpioInitialize() STUB_IMPL;
+int gpioTerminate() STUB_IMPL;
+int gpioSetMode(int, int) STUB_IMPL;
+int gpioWrite(int, int) STUB_IMPL;

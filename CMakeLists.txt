@@ -1,4 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
+
+add_compile_options("-g")
+
+# Set CLI executable name
+set(CLI_EXECUTABLE "mbcli")
+add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
+
+set(PIGPIO_IGNORE ON)
+
 project(roki-mb-daemon)
 
 add_subdirectory(Deps/googletest)
@@ -9,14 +18,13 @@ include_directories(Inc/)
 find_library(PIGPIO_FOUND pigpio)
 
 if(NOT PIGPIO_FOUND)
+  if(PIGPIO_IGNORE)
+    add_compile_definitions(PIGPIO_IGNORE)
+  endif()
   add_library(pigpio Src/PiGpioStub.cpp)
 else()
   add_compile_definitions(PIGPIO_FOUND)
 endif()
-
-# Set CLI executable name
-set(CLI_EXECUTABLE "mbcli")
-add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
 
 # Build Libraries
 add_library(Helpers Src/Helpers.cpp)
