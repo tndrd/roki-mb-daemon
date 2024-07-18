@@ -82,8 +82,8 @@ class Server {
       const typename Proc::Request& request);
 
   template <typename Proc>
-  void GenericHandler(RPCProvider& rpc, const RPCProvider::MsgHeader& header);
-  void DispatchPackage(RPCProvider& rpc, const RPCProvider::MsgHeader& header);
+  void GenericHandler(RPCProvider& rpc, const RPCProvider::MsgHeader& header, const std::string& prefix);
+  void DispatchPackage(RPCProvider& rpc, const RPCProvider::MsgHeader& header, const std::string& prefix);
 
   static void BlockAllSignals();
   ServerSocket CreateHandlerSocket();

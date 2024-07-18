@@ -114,18 +114,23 @@ OVERRIDE_HANDLER(DebugThrow) { throw std::runtime_error("Debug exception"); }
 
 template <typename Proc>
 void Server::GenericHandler(RPCProvider& rpc,
-                            const RPCProvider::MsgHeader& header) {
+                            const RPCProvider::MsgHeader& header,
+                            const std::string& prefix) {
+  Logger << prefix << "Performing " << RPCDefs::ProcIDs::ToStr(Proc::ID)
+         << std::endl;
+
   auto request = Proc::Request::Deserialize(header.Data);
   auto responce = HandlerImpl<Proc>(request);
   rpc.PackMsg(Proc::ID, responce);
 }
 
 void Server::DispatchPackage(RPCProvider& rpc,
-                             const RPCProvider::MsgHeader& header) {
+                             const RPCProvider::MsgHeader& header,
+                             const std::string& prefix) {
   switch (header.ProcId) {
-#define PROCEDURE(Proc)                                              \
-  case RPCDefs::Procedures::Proc::ID:                                \
-    GenericHandler<typename RPCDefs::Procedures::Proc>(rpc, header); \
+#define PROCEDURE(Proc)                                                      \
+  case RPCDefs::Procedures::Proc::ID:                                        \
+    GenericHandler<typename RPCDefs::Procedures::Proc>(rpc, header, prefix); \
     break;
 
 #include "Procedures.list"
@@ -205,7 +210,7 @@ void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
         break;
       }
 
-      server.DispatchPackage(rpc, header);
+      server.DispatchPackage(rpc, header, prefix);
 
       Defer sendGuard{flagSetter};
       rpc.SendPackage();
