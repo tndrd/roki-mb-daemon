@@ -61,6 +61,8 @@ class Server {
   size_t CurrentPort = StartingPort;
   size_t CurrentId = 0;
 
+  pthread_t TID;
+
  private:
   template <typename Proc>
   typename Proc::Responce HandlerImpl(const typename Proc::Request& request);
@@ -75,6 +77,7 @@ class Server {
   static void HandlerRoutine(Server* self, ServerSocket&& newSocket, HandlerId id);
   static void CleanupRoutine(Server* self);
 
+  void RequestShutdown();
   void ShutdownRoutine();
  public:
   void Run();

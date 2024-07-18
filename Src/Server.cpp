@@ -14,10 +14,9 @@ void HelloMessage::Send(int fd) {
   size_t total = 0;
 
   while (total < size) {
-    int ret = send(fd, &buf[total], total - size, 0);
+    int ret = send(fd, &buf[total], size - total, 0);
 
     if (ret < 0) throw FEXCEPT(ErrnoException, "Failed to send()", errno);
-
     assert(ret != 0);
 
     total += ret;
@@ -34,11 +33,10 @@ auto HelloMessage::Recv(int fd) -> HelloMessage {
   size_t total = 0;
 
   while (total < size) {
-    int ret = recv(fd, &buf[total], total - size, 0);
+    int ret = recv(fd, &buf[total], size - total, 0);
 
     if (ret < 0) throw FEXCEPT(ErrnoException, "Failed to recv()", errno);
-
-    assert(ret != 0);
+    if (ret == 0) throw FEXCEPT(std::runtime_error, "Server closed connection");
 
     total += ret;
   }
@@ -47,19 +45,24 @@ auto HelloMessage::Recv(int fd) -> HelloMessage {
 }
 
 void Server::CleanupRoutine(Server* self) {
-  static std::string prefix = "Collector: ";
+  static std::string prefix = "CleanupRoutine: ";
   assert(self);
 
   Server& server = *self;
 
-  std::unique_lock<std::mutex> lk(server.JoinablesMutex);
+  server.Logger << prefix << "Started" << std::endl;
 
   while (1) {
+    std::unique_lock<std::mutex> lk(server.JoinablesMutex);
+
     server.ReadyToJoin.wait(lk, [&server] {
       return !server.Joinables.empty() || server.DoShutdown;
     });
 
-    if (server.DoShutdown && server.Handlers.empty()) break;
+    if (server.DoShutdown && server.Handlers.empty()) {
+      server.Logger << prefix << "Shutting down" << std::endl;
+      break;
+    }
 
     while (!server.Joinables.empty()) {
       size_t id = server.Joinables.front();
@@ -123,8 +126,6 @@ void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
     server.JoinablesMutex.unlock();
   }};
 
-  // Disable cancellation for a while
-  pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
   std::string prefix = "Handler #" + std::to_string(id) + ": ";
@@ -133,23 +134,43 @@ void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
   server.Logger << prefix << "Waiting for connection on port "
                 << socket.GetPort() << "..." << std::endl;
 
-  // TODO implement timeout
-  Connection conn = socket.Accept();
+  std::unique_ptr<Connection> conn;
 
-  server.Logger << prefix << "Accepted connection from " << conn.GetAddr()
+  try {
+    // TODO implement timeout
+    conn = std::make_unique<Connection>(socket.Accept());
+
+  } catch (std::exception& e) {
+    server.Logger << prefix << "Failed to accept connection: " << e.what()
+                  << std::endl;
+    return;
+  } catch (ForcedUnwind&) {
+    server.Logger << prefix << "Shutdown requested during connection"
+                  << std::endl;
+    throw;
+  } catch (...) {
+    server.Logger << prefix << "Unknown exception" << std::endl;
+    return;
+  }
+
+  assert(conn.get());
+
+  server.Logger << prefix << "Accepted connection from " << conn->GetAddr()
                 << std::endl;
 
-  RPCProvider rpc{std::move(conn), ErrCode};
+  RPCProvider rpc{std::move(*conn), ErrCode};
   bool connOk = true;
   auto flagSetter = [&connOk]() { connOk = false; };
 
   while (!server.DoShutdown) try {
-      // enable cancellation on first iteration
-      static auto _ = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-
       Defer recvGuard{flagSetter};
       auto header = rpc.RecvPackage();
       recvGuard.Cancel();
+
+      if (!header.Ok) {
+        server.Logger << prefix << "Client disconnected" << std::endl;
+        break;
+      }
 
       server.DispatchPackage(rpc, header);
 
@@ -186,14 +207,28 @@ void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
 }
 
 void Server::ShutdownRoutine() {
+  Logger << MainThreadPrefix << "Starting Shutdown Routine" << std::endl;
+
+  JoinablesMutex.lock();
   DoShutdown = true;
+  JoinablesMutex.unlock();
+
   for (auto& pair : Handlers) {
-    pthread_cancel(pair.second.native_handle());
+    int ret = pthread_cancel(pair.second.native_handle());
+
+    if (ret == 0) continue;
+
+    Logger << MainThreadPrefix << "Warning: Failed to cancel handler #"
+           << pair.first << ": "
+           << "errno #" << ret << ": " << strerror(ret) << std::endl;
   }
+  ReadyToJoin.notify_all();
 }
 
 ServerSocket Server::CreateHandlerSocket() {
-  for (;; CurrentPort++) {
+  for (;;) {
+    CurrentPort++;
+
     try {
       ServerSocket newSocket{INADDR_ANY, CurrentPort, 1};
       return newSocket;
@@ -205,13 +240,22 @@ ServerSocket Server::CreateHandlerSocket() {
   }
 }
 
+void Server::RequestShutdown() {
+  DoShutdown = true;
+  pthread_cancel(TID);
+}
+
 void Server::Run() {
+  Logger << MainThreadPrefix << "Starting..." << std::endl;
+  Logger << MainThreadPrefix << "Setting up signal handlers..." << std::endl;
+
   sigset_t set;
   sigfillset(&set);
   pthread_sigmask(SIG_BLOCK, &set, NULL);
 
-  static volatile sig_atomic_t shutdownReceived = false;
-  auto handler = [](int) { shutdownReceived = true; };
+  static Server* self = this;
+
+  auto handler = [](int) { self->RequestShutdown(); };
 
   std::signal(SIGTERM, handler);
   std::signal(SIGINT, handler);
@@ -221,54 +265,71 @@ void Server::Run() {
   sigaddset(&set, SIGINT);
   pthread_sigmask(SIG_UNBLOCK, &set, NULL);
 
+  Logger << MainThreadPrefix << "Starting cleanup thread..." << std::endl;
   std::thread cleanup(Server::CleanupRoutine, this);
 
-  while (1) {
+  Helpers::Defer _{[this, &cleanup]() {
+    ShutdownRoutine();
+    cleanup.join();
+  }};
+
+  Logger << MainThreadPrefix << "Waiting for connections..." << std::endl;
+  while (!DoShutdown) {
     try {
-      Connection newConnection = Socket.Accept();
+      Connection helloConn = Socket.Accept();
 
       Logger << MainThreadPrefix << "Accepted connection from "
-             << newConnection.GetAddr() << std::endl;
-
-      auto newSocket = CreateHandlerSocket();
-
-      Logger << MainThreadPrefix << "Creating handler on port "
-             << newSocket.GetPort() << "...";
+             << helloConn.GetAddr() << std::endl;
 
       size_t newId = CurrentId++;
-      std::thread newThread(Server::HandlerRoutine, this, std::move(newSocket),
-                            newId);
-      Handlers.insert({newId, std::move(newThread)});
+      auto handlerSocket = CreateHandlerSocket();
 
-      HelloMessage hello{newSocket.GetPort()};
-      hello.Send(newConnection.GetFd());
+      Logger << MainThreadPrefix << "Creating handler on port "
+             << handlerSocket.GetPort() << "..." << std::endl;
+
+      std::thread handlerThread(Server::HandlerRoutine, this,
+                                std::move(handlerSocket), newId);
+      
+      JoinablesMutex.lock();
+      Handlers.insert({newId, std::move(handlerThread)});
+      JoinablesMutex.unlock();
+
+      HelloMessage hello{handlerSocket.GetPort()};
+      hello.Send(helloConn.GetFd());
 
       Logger << MainThreadPrefix << "Handler #" << newId << " created"
              << std::endl;
     } catch (std::exception& e) {
-      if (shutdownReceived)
-        Logger << MainThreadPrefix << "Shutting down..." << std::endl;
-      else
-        Logger << MainThreadPrefix << "Exception occured: " << e.what()
-               << std::endl;
-
+      Logger << MainThreadPrefix << "Exception occured: " << e.what()
+             << std::endl;
       break;
+    } catch (ForcedUnwind&) {
+      Logger << MainThreadPrefix << "Shutdown received" << std::endl;
+      throw;
     }
   }
-
-  ShutdownRoutine();
-
-  cleanup.join();
 }
 
-Server::Server(AddrType addr, Helpers::PortType port, size_t backlog, std::ostream& logger)
-    : Socket{addr, port, backlog}, Logger{logger} {}
+Server::Server(AddrType addr, Helpers::PortType port, size_t backlog,
+               std::ostream& logger)
+    : Socket{addr, port, backlog}, Logger{logger}, TID{pthread_self()} {
+  Socket.DisableLingering();
+}
 
 // Handlers implementation
-
 template <typename Proc>
 typename Proc::Responce Server::HandlerImpl(
     const typename Proc::Request& request) {
-  std::cout << RPCDefs::ProcIDs::ToStr(Proc::ID) << std::endl;
+  throw FEXCEPT(std::runtime_error, "Not implemented");
+}
+
+#define RPC RPCDefs::Procedures
+#define HANDLER(Proc)                                          \
+  template <>                                                  \
+  typename RPC::Proc::Responce Server::HandlerImpl<RPC::Proc>( \
+      const typename RPC::Proc::Request& request)
+
+HANDLER(Shutdown) {
+  RequestShutdown();
   return {};
 }
