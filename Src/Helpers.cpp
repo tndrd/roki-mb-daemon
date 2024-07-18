@@ -3,12 +3,13 @@
 using namespace Roki::Helpers;
 
 DescriptorWrapper::DescriptorWrapper(int newFd) : Fd{newFd} {}
-DescriptorWrapper::DescriptorWrapper() : Fd{-1} {}
 DescriptorWrapper::~DescriptorWrapper() { close(Fd.Get()); }
 int DescriptorWrapper::Get() const { return Fd.Get(); }
 
 ErrnoException::ErrnoException(std::string msg, int error)
-    : std::runtime_error{msg + ": " + strerror(error)}, Error{error} {}
+    : std::runtime_error{msg + ": " + "errno #" + std::to_string(error) + ": " +
+                         strerror(error)},
+      Error{error} {}
 
 int ErrnoException::GetErrno() const noexcept { return Error; }
 
