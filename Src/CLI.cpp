@@ -121,11 +121,13 @@ Client DaemonCLI::MakeClient() {
 void DaemonCLI::DoChipStart() {
   Client client = MakeClient();
   client.Call<Client::Proc::Start>({});
+  client.SoftDisconnect();
 }
 
 void DaemonCLI::DoChipStop() {
   Client client = MakeClient();
   client.Call<Client::Proc::Reset>({});
+  client.SoftDisconnect();
 }
 
 void DaemonCLI::CheckFile(const std::string& path) {
@@ -144,6 +146,7 @@ void DaemonCLI::DoChipFlash(const std::string& path) {
   req.Size = path.size();
 
   client.Call<Client::Proc::Flash>(req);
+  client.SoftDisconnect();
 }
 
 void DaemonCLI::PutDaemonParams(const DaemonTools::Params& params) {
@@ -157,12 +160,14 @@ void DaemonCLI::DoDaemonStart() {
   DaemonTools daemon;
   daemon.Launch();
 
+  std::cout << "Daemon launched successfully" << std::endl;
   PutDaemonParams(daemon.GetParams());
 }
 
 void DaemonCLI::DoDaemonStop() {
   Client client = MakeClient();
   client.Call<Client::Proc::Shutdown>({});
+  client.SoftDisconnect();
 }
 
 void DaemonCLI::DoDaemonDebug() { DaemonTools{}.RunHere(); }
@@ -224,6 +229,8 @@ void DaemonCLI::DoStatus() {
   auto rsp = client.Call<Client::Proc::GetStatus>({});
 
   std::cout << "Firmware status: " << rsp.ToCxxStr() << std::endl;
+
+  client.SoftDisconnect();
 }
 
 void DaemonCLI::Execute(const TokenBuf& tokens) {
