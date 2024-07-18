@@ -47,7 +47,7 @@ class Client {
 
     auto header = RPC.RecvPackage();
 
-    if (!header.Ok) throw ProcException(header.ProcId, header.Msg);
+    if (!header.Ok) throw ProcException(Proc::ID, header.Msg);
 
     return Proc::Responce::Deserialize(header.Data);
   }
