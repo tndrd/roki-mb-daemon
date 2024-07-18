@@ -38,6 +38,11 @@ void DaemonTools::PutError(int fd, const std::string& msg) {
   WriteFromBuf(fd, msgSz + 2);
 }
 
+void DaemonTools::PutAck(int fd) {
+  Buffer[0] = ACK;
+  WriteFromBuf(fd, 1);
+}
+
 auto DaemonTools::ReadResult(int fd) -> LaunchResult {
   LaunchResult result;
 
@@ -75,7 +80,6 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
   if (ret != 0) {
     auto result = ReadResult(readFd);
     result.Pid = ret;
-
     close(readFd);
     return result;
   }
@@ -90,7 +94,7 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
     return {};
   }
 
-  if (daemon(0, 0) < 0) {
+  if (daemon(1, 0) < 0) {
     PutError(writeFd, "daemon()"s + strerror(errno));
     return {};
   }
@@ -104,8 +108,10 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
     PutError(writeFd, "Failed to create server: "s + e.what());
     return {};
   }
-
+  
+  PutAck(writeFd);
   fdGuard.Cancel();
+
   close(writeFd);
 
   assert(server);
@@ -166,4 +172,5 @@ void DaemonTools::RunHere() {
   auto params = GetParams();
 
   Server server{INADDR_ANY, params.Port, params.Backlog, std::cout};
+  server.Run();
 }

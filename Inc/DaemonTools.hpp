@@ -36,6 +36,7 @@ class DaemonTools {
   void ReadToBuf(int fd, size_t size);
   void WriteFromBuf(int fd, size_t size) const;
   void PutError(int fd, const std::string& msg);
+  void PutAck(int fd);
   LaunchResult ReadResult(int fd);
 
   LaunchResult LaunchAt(const Params& params);
