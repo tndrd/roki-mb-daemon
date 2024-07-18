@@ -170,7 +170,7 @@ void DaemonCLI::DoDaemonStop() {
   client.SoftDisconnect();
 }
 
-void DaemonCLI::DoDaemonDebug() { DaemonTools{}.RunHere(); }
+void DaemonCLI::DoDaemonDebug() { DaemonTools{}.RunHere(true); }
 
 void DaemonCLI::PutDescription(const TokenBuf& tokens,
                                const std::string& description) {
@@ -228,7 +228,7 @@ void DaemonCLI::DoStatus() {
   Client client = MakeClient();
   auto rsp = client.Call<Client::Proc::GetStatus>({});
 
-  std::cout << "Firmware status: " << rsp.ToCxxStr() << std::endl;
+  std::cout << "Firmware status: " << rsp.Description.ToCxxStr() << std::endl;
 
   client.SoftDisconnect();
 }
