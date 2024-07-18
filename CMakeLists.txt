@@ -7,6 +7,7 @@ set(CLI_EXECUTABLE "mbcli")
 add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
 
 set(PIGPIO_IGNORE ON)
+set(USE_SCRIPT_MOCKS ON)
 
 project(roki-mb-daemon)
 
@@ -60,3 +61,15 @@ target_link_libraries(CLI PUBLIC DaemonTools Client)
 # Build Executables
 add_executable(${CLI_EXECUTABLE} Executables/CLIMain.cpp)
 target_link_libraries(${CLI_EXECUTABLE} PUBLIC CLI)
+
+# Copy Scripts to build
+if(USE_SCRIPT_MOCKS)
+  set(SCRIPTS_DIR Scripts/Mocks)
+else()
+  set(SCRIPTS_DIR Scripts/Impls)
+endif()
+
+add_custom_target(
+  CopyScripts COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}
+                       ${CMAKE_CURRENT_BINARY_DIR}/Scripts)
+add_dependencies(HwUtils CopyScripts)
