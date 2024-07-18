@@ -51,6 +51,8 @@ class Client {
 
     return Proc::Responce::Deserialize(header.Data);
   }
+
+  void SoftDisconnect();
 };
 
 }  // namespace Roki

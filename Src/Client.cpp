@@ -30,3 +30,8 @@ Client::ProcException::ProcException(RPCDefs::Byte procId,
     : std::runtime_error{Message(procId, error)} {}
 
 Client::Client(Connection&& conn) : RPC{std::move(conn), ErrorCode} {}
+
+void Client::SoftDisconnect() {
+  RPC.PackError("Disconnect");
+  RPC.SendPackage();
+}
