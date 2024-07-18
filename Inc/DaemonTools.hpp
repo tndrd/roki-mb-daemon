@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "Server.hpp"
+#include "HandlerMock.hpp"
 
 #define DAEMON_PORT_ENV "MB_DAEMON_PORT"
 #define DAEMON_LOGFILE_ENV "MB_DAEMON_LOGFILE"
@@ -39,7 +40,9 @@ class DaemonTools {
   void PutAck(int fd);
   LaunchResult ReadResult(int fd);
 
-  LaunchResult LaunchAt(const Params& params);
+  LaunchResult LaunchAt(const Params& params, bool useMocks = false);
+
+  static std::unique_ptr<IHandler> MakeHandler(bool useMocks);
 
  public:
   DaemonTools() = default;
@@ -47,6 +50,6 @@ class DaemonTools {
   static Params GetParams();
   static bool IsRunning();
   void Launch();
-  void RunHere();
+  void RunHere(bool useMocks = false);
 };
 }  // namespace Roki
