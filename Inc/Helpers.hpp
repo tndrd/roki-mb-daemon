@@ -18,18 +18,19 @@ namespace Roki {
 
 namespace Helpers {
 
-template <typename T>
+template <typename T, T DefaultValue = T{}>
 class UniqueValue {
   T Value;
 
  public:
   explicit UniqueValue(T newValue) : Value{newValue} {}
-  UniqueValue() = default;
 
   UniqueValue(const UniqueValue&) = delete;
   UniqueValue& operator=(const UniqueValue&) = delete;
 
-  UniqueValue(UniqueValue&& rhs) : Value{std::move(rhs.Value)} {}
+  UniqueValue(UniqueValue&& rhs) : Value{std::move(rhs.Value)} {
+    rhs.Value = DefaultValue;
+  }
 
   UniqueValue& operator=(UniqueValue&& rhs) {
     std::swap(Value, rhs.Value);
@@ -42,11 +43,10 @@ class UniqueValue {
 };
 
 class DescriptorWrapper {
-  UniqueValue<int> Fd;
+  UniqueValue<int, -1> Fd;
 
  public:
   explicit DescriptorWrapper(int newFd);
-  DescriptorWrapper();
   ~DescriptorWrapper();
 
   DescriptorWrapper(const DescriptorWrapper&) = delete;
