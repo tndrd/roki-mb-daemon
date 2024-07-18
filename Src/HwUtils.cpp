@@ -1,12 +1,5 @@
 #include "HwUtils.hpp"
 
-#define RESET_PIN 6
-#define RESET_TIME_US 100 * 1000  // 100ms
-#define BOOTLOADER_FLASH "BootloaderFlash.py"
-#define BOOTLOADER_START "BootloaderStart.py"
-#define BOOTLOADER_FIND "BootloaderFind.py"
-#define PYTHON_EXECUTABLE "python3"
-
 #define FILLSTRINGFROMFD_BUFSIZE 63  // Excluding possible \0
 #define PYTHON_RUN(script) PYTHON_EXECUTABLE " " script " "
 
@@ -20,16 +13,16 @@ void HwUtils::ExecuteChildRoutine(const std::string& cmd, int outFd) {
                 << std::endl;
       exit(1);
     }
+  }
 
-    if (execl("/bin/sh", "sh", "-c", cmd.c_str(), NULL) < 0) {
-      std::cout << "Failed to run script \"" + cmd + "\": " << strerror(errno)
-                << std::endl;
-      exit(1);
-    }
+  if (execl("/bin/sh", "sh", "-c", cmd.c_str(), NULL) < 0) {
+    std::cout << "Failed to run script \"" + cmd + "\": " << strerror(errno)
+              << std::endl;
+    exit(1);
   }
 }
 
-void HwUtils::Execute(const std::string& cmd, int outFd) {
+void HwUtils::Execute(const std::string& cmd, int outFd, bool closeFd) {
   int ret = fork();
 
   if (ret < 0)
@@ -39,6 +32,8 @@ void HwUtils::Execute(const std::string& cmd, int outFd) {
 
   int status = 0;
   ret = wait(&status);
+
+  if (closeFd) close(outFd);
 
   if (ret < 0) throw FEXCEPT(ErrnoException, "Failed to wait for child", errno);
 
@@ -82,11 +77,10 @@ std::string HwUtils::BootloaderFind() {
 
   std::string dst;
 
-  Execute(PYTHON_RUN(BOOTLOADER_FIND), writeFd);
+  Execute(PYTHON_RUN(BOOTLOADER_FIND), writeFd, true);
   FillStringFromFd(dst, readFd);
 
   close(readFd);
-  close(writeFd);
 
   return dst;
 }
@@ -98,7 +92,6 @@ void HwUtils::FillStringFromFd(std::string& dst, int srcFd) {
 
   while (1) {
     int ret = read(srcFd, buf, sizeof(buf));
-
     if (ret < 0) throw FEXCEPT(ErrnoException, "read() failed", errno);
     if (ret == 0) break;
 

@@ -28,9 +28,13 @@
 
 #define RESET_PIN 6
 #define SIGNAL_WIDTH_US 100 * 1000  // 100ms
-#define BOOTLOADER_FLASH "BootloaderFlash.py"
-#define BOOTLOADER_START "BootloaderStart.py"
-#define BOOTLOADER_FIND "BootloaderFind.py"
+
+#define SCRIPTS_PATH "Scripts/"
+
+#define BOOTLOADER_FLASH SCRIPTS_PATH "BootloaderFlash.py"
+#define BOOTLOADER_START  SCRIPTS_PATH "BootloaderStart.py"
+#define BOOTLOADER_FIND SCRIPTS_PATH "BootloaderFind.py"
+
 #define PYTHON_EXECUTABLE "python3"
 
 namespace Roki {
@@ -38,7 +42,7 @@ namespace Roki {
 class HwUtils {
  private:
   static void ExecuteChildRoutine(const std::string& cmd, int outFd);
-  static void Execute(const std::string& cmd, int outFd = STDOUT_FILENO);
+  static void Execute(const std::string& cmd, int outFd = STDOUT_FILENO, bool closeFd = false);
   static void FillStringFromFd(std::string& dst, int srcFd);
 
  public:
@@ -46,6 +50,5 @@ class HwUtils {
   static void BootloaderFlash(const std::string& firmware);
   static void BootloaderStart();
   static std::string BootloaderFind();
-
 };
 }  // namespace Roki
