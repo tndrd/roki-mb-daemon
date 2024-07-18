@@ -1,0 +1,6 @@
+PROCEDURE(GetStatus);
+PROCEDURE(Flash);
+PROCEDURE(Start);
+PROCEDURE(Reset);
+PROCEDURE(Connect);
+PROCEDURE(Disconnect);

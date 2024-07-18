@@ -33,6 +33,18 @@ class HelloMessage {
   Helpers::PortType GetPort() const;
 };
 
+struct IHandler {
+#define PROCEDURE(Proc)                       \
+  virtual RPCDefs::Procedures::Proc::Responce Proc( \
+      const RPCDefs::Procedures::Proc::Request&) = 0;
+
+  #include "Procedures.list"
+
+  virtual ~IHandler() = default;
+
+#undef PROCEDURE
+};
+
 class Server {
  private:
   using HandlerId = size_t;
@@ -46,7 +58,8 @@ class Server {
   using PortMsgT = size_t;
 
  public:
-  FirmwareFSM Firmware;
+  std::unique_ptr<IHandler> Handler;
+
   ServerSocket Socket;
   std::ostream& Logger;
 
@@ -65,7 +78,8 @@ class Server {
 
  private:
   template <typename Proc>
-  typename Proc::Responce HandlerImpl(const typename Proc::Request& request);
+  typename Proc::Responce HandlerImpl(
+      const typename Proc::Request& request);
 
   template <typename Proc>
   void GenericHandler(RPCProvider& rpc, const RPCProvider::MsgHeader& header);
@@ -74,14 +88,17 @@ class Server {
   static void BlockAllSignals();
   ServerSocket CreateHandlerSocket();
 
-  static void HandlerRoutine(Server* self, ServerSocket&& newSocket, HandlerId id);
+  static void HandlerRoutine(Server* self, ServerSocket&& newSocket,
+                             HandlerId id);
   static void CleanupRoutine(Server* self);
 
   void RequestShutdown();
   void ShutdownRoutine();
+
  public:
   void Run();
-  Server(Helpers::AddrType addr, Helpers::PortType port, size_t backlog, std::ostream& logger);
+  Server(Helpers::AddrType addr, Helpers::PortType port, size_t backlog,
+         std::ostream& logger, std::unique_ptr<IHandler>&& handler);
 };  // namespace Roki
 
 }  // namespace Roki
