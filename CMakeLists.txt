@@ -49,11 +49,13 @@ target_link_libraries(RPCDefs PUBLIC Helpers)
 add_library(Server Src/Server.cpp)
 target_link_libraries(Server PUBLIC FirmwareFSM RPC RPCDefs)
 
+add_library(HandlerMock Src/HandlerMock.cpp)
+
 add_library(Client Src/Client.cpp)
 target_link_libraries(Client PUBLIC Server RPCDefs)
 
 add_library(DaemonTools Src/DaemonTools.cpp)
-target_link_libraries(DaemonTools PUBLIC Server)
+target_link_libraries(DaemonTools PUBLIC Server HandlerMock)
 
 add_library(CLI Src/CLI.cpp)
 target_link_libraries(CLI PUBLIC DaemonTools Client)
