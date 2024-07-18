@@ -78,6 +78,40 @@ void Server::CleanupRoutine(Server* self) {
   }
 }
 
+#define RPC RPCDefs::Procedures
+#define OVERRIDE_HANDLER(Proc)                                 \
+  template <>                                                  \
+  typename RPC::Proc::Responce Server::HandlerImpl<RPC::Proc>( \
+      const typename RPC::Proc::Request& request)
+
+OVERRIDE_HANDLER(Shutdown) {
+  RequestShutdown();
+  return {};
+}
+
+OVERRIDE_HANDLER(Ping) { return {}; }
+
+OVERRIDE_HANDLER(DebugBlock) {
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+  return {};
+}
+
+OVERRIDE_HANDLER(DebugThrow) { throw std::runtime_error("Debug exception"); }
+
+#undef OVERRIDE_HANDLER
+
+#define PROCEDURE(Proc)                                        \
+  template <>                                                  \
+  typename RPC::Proc::Responce Server::HandlerImpl<RPC::Proc>( \
+      const typename RPC::Proc::Request& request) {            \
+    return Handler->Proc(request);                             \
+  }
+
+#include "Procedures.list"
+
+#undef PROCEDURE
+#undef RPC
+
 template <typename Proc>
 void Server::GenericHandler(RPCProvider& rpc,
                             const RPCProvider::MsgHeader& header) {
@@ -89,18 +123,17 @@ void Server::GenericHandler(RPCProvider& rpc,
 void Server::DispatchPackage(RPCProvider& rpc,
                              const RPCProvider::MsgHeader& header) {
   switch (header.ProcId) {
-#define CASEGEN(Proc)                                                \
+#define PROCEDURE(Proc)                                              \
   case RPCDefs::Procedures::Proc::ID:                                \
     GenericHandler<typename RPCDefs::Procedures::Proc>(rpc, header); \
     break;
 
-    CASEGEN(GetStatus);
-    CASEGEN(Flash);
-    CASEGEN(Start);
-    CASEGEN(Connect);
-    CASEGEN(Disconnect);
-    CASEGEN(Reset);
-    CASEGEN(Shutdown);
+#include "Procedures.list"
+
+    PROCEDURE(Shutdown);
+    PROCEDURE(Ping);
+    PROCEDURE(DebugBlock)
+    PROCEDURE(DebugThrow);
 
 #undef CASEGEN
   }
@@ -289,7 +322,7 @@ void Server::Run() {
 
       std::thread handlerThread(Server::HandlerRoutine, this,
                                 std::move(handlerSocket), newId);
-      
+
       JoinablesMutex.lock();
       Handlers.insert({newId, std::move(handlerThread)});
       JoinablesMutex.unlock();
@@ -311,25 +344,10 @@ void Server::Run() {
 }
 
 Server::Server(AddrType addr, Helpers::PortType port, size_t backlog,
-               std::ostream& logger)
-    : Socket{addr, port, backlog}, Logger{logger}, TID{pthread_self()} {
+               std::ostream& logger, std::unique_ptr<IHandler>&& handler)
+    : Socket{addr, port, backlog},
+      Logger{logger},
+      TID{pthread_self()},
+      Handler{std::move(handler)} {
   Socket.DisableLingering();
-}
-
-// Handlers implementation
-template <typename Proc>
-typename Proc::Responce Server::HandlerImpl(
-    const typename Proc::Request& request) {
-  throw FEXCEPT(std::runtime_error, "Not implemented");
-}
-
-#define RPC RPCDefs::Procedures
-#define HANDLER(Proc)                                          \
-  template <>                                                  \
-  typename RPC::Proc::Responce Server::HandlerImpl<RPC::Proc>( \
-      const typename RPC::Proc::Request& request)
-
-HANDLER(Shutdown) {
-  RequestShutdown();
-  return {};
 }
