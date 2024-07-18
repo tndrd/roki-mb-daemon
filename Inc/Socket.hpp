@@ -44,6 +44,8 @@ class ServerSocket {
 
   Helpers::PortType GetPort() const;
   std::string GetAddr() const;
+
+  void DisableLingering();
 };
 
 class ClientSocket {

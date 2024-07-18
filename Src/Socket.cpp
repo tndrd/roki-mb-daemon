@@ -13,7 +13,19 @@ bool Connection::IsNonBlock() const { return NonBlock.Get(); }
 
 int Connection::GetFd() const { return Fd.Get(); }
 
-ServerSocket::ServerSocket(AddrType addr, size_t port, size_t backlog) {
+void ServerSocket::DisableLingering() {
+  linger arg;
+  arg.l_onoff = 1;
+  arg.l_linger = 0;
+
+  int ret = setsockopt(SockFd.Get(), SOL_SOCKET, SO_LINGER, &arg, sizeof(arg));
+  if (ret == 0) return;
+
+  throw FEXCEPT(ErrnoException, "Failed to disable lingering via setsockopt()", errno);
+}
+
+ServerSocket::ServerSocket(AddrType addr, size_t port, size_t backlog)
+    : SockFd{-1} {
   int newFd = 0;
   sockaddr_in sa;
 
