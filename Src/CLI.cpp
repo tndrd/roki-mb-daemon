@@ -82,6 +82,7 @@ void DaemonCLI::Run() try {
     if (cmd == KeyWords::Start) return DoChipStart();
     if (cmd == KeyWords::Stop) return DoChipStop();
     if (cmd == KeyWords::Flash) return DoChipFlash(GetNextToken());
+    if (cmd == KeyWords::Status) return DoChipStatus();
 
     UnknownToken();
   }
@@ -91,13 +92,22 @@ void DaemonCLI::Run() try {
 
     if (cmd == KeyWords::Start) return DoDaemonStart();
     if (cmd == KeyWords::Stop) return DoDaemonStop();
-    if (cmd == KeyWords::Debug) return DoDaemonDebug();
+    if (cmd == KeyWords::Status) return DoDaemonStatus();
+
+    UnknownToken();
+  }
+
+  if (cmd == KeyWords::Debug) {
+    cmd = GetNextToken();
+
+    if (cmd == KeyWords::Start) return DoDaemonDebugStart();
+    if (cmd == KeyWords::Throw) return DoDaemonDebugThrow();
+    if (cmd == KeyWords::Block) return DoDaemonDebugBlock();
 
     UnknownToken();
   }
 
   if (cmd == KeyWords::Help) return DoHelp();
-  if (cmd == KeyWords::Status) return DoStatus();
 
   UnknownToken();
 } catch (SyntaxException& e) {
@@ -149,6 +159,23 @@ void DaemonCLI::DoChipFlash(const std::string& path) {
   client.SoftDisconnect();
 }
 
+void DaemonCLI::DoChipStatus() {
+  Client client = MakeClient();
+
+  auto responce = client.Call<Client::Proc::GetStatus>({});
+
+  std::cout << "Chip status: " << responce.Description.ToCxxStr() << std::endl;
+
+  const char* answer = responce.Acquired ? "Yes" : "No";
+
+  std::cout << "Is acquired: " << answer << std::endl;
+
+  if (responce.Acquired)
+    std::cout << "User PID:  " << responce.UserPID << std::endl;
+
+  client.SoftDisconnect();
+}
+
 void DaemonCLI::PutDaemonParams(const DaemonTools::Params& params) {
   std::cout << "Daemon parameters: " << std::endl;
   std::cout << TAB "Port:    " << params.Port << std::endl;
@@ -170,7 +197,7 @@ void DaemonCLI::DoDaemonStop() {
   client.SoftDisconnect();
 }
 
-void DaemonCLI::DoDaemonDebug() { DaemonTools{}.RunHere(true); }
+void DaemonCLI::DoDaemonDebugStart() { DaemonTools{}.RunHere(true); }
 
 void DaemonCLI::PutDescription(const TokenBuf& tokens,
                                const std::string& description) {
@@ -183,6 +210,24 @@ void DaemonCLI::PutDescription(const TokenBuf& tokens,
   std::cout << tokens.back();
 
   std::cout << "\": " << description << std::endl;
+}
+
+void DaemonCLI::DoDaemonDebugBlock() {
+  Client client = MakeClient();
+  client.Call<Client::Proc::DebugBlock>({});
+  client.SoftDisconnect();
+}
+
+void DaemonCLI::DoDaemonDebugThrow() {
+  Client client = MakeClient();
+
+  try {
+    client.Call<Client::Proc::DebugThrow>({});
+  } catch (Client::ProcException& e) {
+    std::cout << "Error arrived: " << e.what() << std::endl;
+  }
+
+  client.SoftDisconnect();
 }
 
 void DaemonCLI::PrintUsage() const {
@@ -199,22 +244,33 @@ void DaemonCLI::DoHelp() {
   PrintUsage();
   std::cout << std::endl << "List of available commands: " << std::endl;
 
+  PutDescription({KW::Daemon, KW::Start}, "Starts daemon");
+  PutDescription({KW::Daemon, KW::Stop}, "Stops daemon");
+  PutDescription({KW::Daemon, KW::Status}, "Prints status info on daemon");
+
+  std::cout << std::endl;
+
   PutDescription({KW::Chip, KW::Start}, "Starts firmware");
   PutDescription({KW::Chip, KW::Stop}, "Stops firmware");
   PutDescription({KW::Chip, KW::Flash, "<PATH>"}, "Flashes selected firmware");
+  PutDescription({KW::Chip, KW::Status}, "Prints status info on firmware");
 
-  PutDescription({KW::Daemon, KW::Start}, "Starts daemon");
-  PutDescription({KW::Daemon, KW::Stop}, "Stops daemon");
+  std::cout << std::endl;
 
   PutDescription({KW::Help}, "Prints this text");
-  PutDescription({KW::Status}, "Prints status info on daemon and firmware");
 
-  PutDescription({KW::Daemon, KW::Debug}, "Launches server in this session");
+  std::cout << std::endl << "List of debug commands: " << std::endl;
+
+  PutDescription({KW::Debug, KW::Start}, "Launches daemon in this session");
+  PutDescription({KW::Debug, KW::Block},
+                 "Performs blocking request on daemon");
+  PutDescription({KW::Debug, KW::Throw},
+                 "Performs throwing request on daemon");
 
   std::cout << std::endl;
 }
 
-void DaemonCLI::DoStatus() {
+void DaemonCLI::DoDaemonStatus() {
   DaemonTools daemon;
 
   if (!daemon.IsRunning()) {
@@ -226,10 +282,16 @@ void DaemonCLI::DoStatus() {
   PutDaemonParams(daemon.GetParams());
 
   Client client = MakeClient();
-  auto rsp = client.Call<Client::Proc::GetStatus>({});
+  Helpers::Defer _{[&client]() {}};
 
-  std::cout << "Firmware status: " << rsp.Description.ToCxxStr() << std::endl;
+  try {
+    client.Call<Client::Proc::Ping>({});
+  } catch (std::exception& e) {
+    std::cout << "Failed to ping daemon: " << e.what() << std::endl;
+    throw;
+  }
 
+  std::cout << "Daemon ping: OK" << std::endl;
   client.SoftDisconnect();
 }
 

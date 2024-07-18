@@ -34,6 +34,8 @@ class DaemonCLI {
     DECLARE(Status, "status");
     DECLARE(Help, "help");
     DECLARE(Debug, "debug");
+    DECLARE(Block, "block");
+    DECLARE(Throw, "throw");
 
 #undef DECLARE
   };
@@ -59,11 +61,17 @@ class DaemonCLI {
   void DoChipStart();
   void DoChipStop();
   void DoChipFlash(const std::string& path);
+  void DoChipStatus();
+
   void DoDaemonStart();
-  void DoDaemonDebug();
   void DoDaemonStop();
+  void DoDaemonStatus();
+
   void DoHelp();
-  void DoStatus();
+
+  void DoDaemonDebugStart();
+  void DoDaemonDebugBlock();
+  void DoDaemonDebugThrow();
 
  public:
   static void Execute(const TokenBuf& tokens);
