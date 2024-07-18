@@ -66,3 +66,31 @@ std::string RPCDefs::Messages::String::ToCxxStr() {
 
   return str;
 }
+
+auto RPCDefs::Messages::ChipStatus::GetPackedSize() const -> Byte {
+  return Description.GetPackedSize() + sizeof(Acquired) + sizeof(UserPID);
+}
+
+void RPCDefs::Messages::ChipStatus::Serialize(Byte* ptr) const {
+  Description.Serialize(ptr);
+  ptr += Description.GetPackedSize();
+
+  *reinterpret_cast<decltype(Acquired)*>(ptr) = Acquired;
+  ptr += sizeof(Acquired);
+
+  *reinterpret_cast<decltype(UserPID)*>(ptr) = UserPID;
+}
+
+auto RPCDefs::Messages::ChipStatus::Deserialize(const Byte* ptr) -> ChipStatus {
+  ChipStatus result;
+
+  result.Description = String::Deserialize(ptr);
+  ptr += result.Description.GetPackedSize();
+
+  result.Acquired = *reinterpret_cast<const decltype(result.Acquired)*>(ptr);
+  ptr += sizeof(result.Acquired);
+
+  result.UserPID = *reinterpret_cast<const decltype(result.UserPID)*>(ptr);
+
+  return result;
+}

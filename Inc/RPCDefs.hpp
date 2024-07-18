@@ -48,13 +48,23 @@ struct RPCDefs {
 
       std::string ToCxxStr();
     };
+
+    struct ChipStatus {
+      String Description;
+      bool Acquired;
+      pid_t UserPID;
+
+      Byte GetPackedSize() const;
+      void Serialize(Byte* ptr) const;
+      static ChipStatus Deserialize(const Byte* ptr);
+    };
   };
 
   struct Procedures {
     struct GetStatus {
       static constexpr Byte ID = ProcIDs::GetStatus;
       using Request = Messages::Empty;
-      using Responce = Messages::String;
+      using Responce = Messages::ChipStatus;
     };
 
     struct Flash {
@@ -72,7 +82,7 @@ struct RPCDefs {
     struct Connect {
       static constexpr Byte ID = ProcIDs::Connect;
       using Request = Messages::Empty;
-      using Responce = Messages::Empty;
+      using Responce = Messages::String;
     };
 
     struct Disconnect {
