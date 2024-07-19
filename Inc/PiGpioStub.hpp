@@ -5,7 +5,7 @@
 
 #define PI_OUTPUT 0
 
-int gpioInitialize();
+int gpioInitialise();
 int gpioTerminate();
 int gpioSetMode(int, int);
 int gpioWrite(int, int);

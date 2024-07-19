@@ -19,7 +19,7 @@ using namespace Roki::Helpers;
   { return {}; }
 #endif
 
-int gpioInitialize() STUB_IMPL;
+int gpioInitialise() STUB_IMPL;
 int gpioTerminate() STUB_IMPL;
 int gpioSetMode(int, int) STUB_IMPL;
 int gpioWrite(int, int) STUB_IMPL;
