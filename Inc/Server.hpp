@@ -96,7 +96,7 @@ class Server {
   ServerSocket CreateHandlerSocket();
 
   static void HandlerRoutine(Server* self, ServerSocket&& newSocket,
-                             HandlerId id);
+                             HandlerId id, std::condition_variable&, bool&);
   static void CleanupRoutine(Server* self);
 
   void RequestShutdown();

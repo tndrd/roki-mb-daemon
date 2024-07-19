@@ -151,7 +151,7 @@ void Server::BlockAllSignals() {
 }
 
 void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
-                            HandlerId id) {
+                            HandlerId id, std::condition_variable& readyCond, bool& ready) {
   BlockAllSignals();
   assert(self);
 
@@ -173,6 +173,9 @@ void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
                 << socket.GetPort() << "..." << std::endl;
 
   std::unique_ptr<Connection> conn;
+
+  ready = true;
+  readyCond.notify_all();
 
   try {
     // TODO implement timeout
@@ -325,12 +328,19 @@ void Server::Run() {
       Logger << MainThreadPrefix << "Creating handler on port "
              << handlerSocket.GetPort() << "..." << std::endl;
 
+      std::mutex readyMutex;
+      std::unique_lock<std::mutex> lock{readyMutex};
+      std::condition_variable readyCond;
+      bool ready = false;
+
       std::thread handlerThread(Server::HandlerRoutine, this,
-                                std::move(handlerSocket), newId);
+                                std::move(handlerSocket), newId, std::ref(readyCond), std::ref(ready));
 
       JoinablesMutex.lock();
       Handlers.insert({newId, std::move(handlerThread)});
       JoinablesMutex.unlock();
+
+      readyCond.wait(lock, [&ready]{return ready;});
 
       HelloMessage hello{handlerSocket.GetPort()};
       hello.Send(helloConn.GetFd());
