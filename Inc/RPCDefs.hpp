@@ -46,13 +46,22 @@ struct RPCDefs {
       void Serialize(Byte* ptr) const;
       static String Deserialize(const Byte* ptr);
 
-      std::string ToCxxStr();
+      std::string ToCxxStr() const;
+    };
+
+    struct UserData {
+      String Name;
+      pid_t PID;
+
+      Byte GetPackedSize() const;
+      void Serialize(Byte* ptr) const;
+      static UserData Deserialize(const Byte* ptr);
     };
 
     struct ChipStatus {
       String Description;
       bool Acquired;
-      pid_t UserPID;
+      UserData User;
 
       Byte GetPackedSize() const;
       void Serialize(Byte* ptr) const;
@@ -81,7 +90,7 @@ struct RPCDefs {
 
     struct Connect {
       static constexpr Byte ID = ProcIDs::Connect;
-      using Request = Messages::Empty;
+      using Request = Messages::UserData;
       using Responce = Messages::String;
     };
 
