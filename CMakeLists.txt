@@ -31,9 +31,6 @@ endif()
 
 
 project(roki-mb-daemon)
-
-add_subdirectory(Deps/googletest)
-
 include_directories(Inc/)
 
 # Provide pigpio
