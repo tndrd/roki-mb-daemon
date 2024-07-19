@@ -79,10 +79,10 @@ void Server::CleanupRoutine(Server* self) {
 }
 
 #define RPC RPCDefs::Procedures
-#define OVERRIDE_HANDLER(Proc)                                 \
-  template <>                                                  \
-  typename RPC::Proc::Responce Server::HandlerImpl<RPC::Proc>( \
-      const typename RPC::Proc::Request& request)
+#define OVERRIDE_HANDLER(Proc)                                                \
+  template <>                                                                 \
+  typename std::unique_ptr<IHandler::IResponce<typename RPC::Proc::Responce>> \
+  Server::HandlerImpl<RPC::Proc>(const typename RPC::Proc::Request& request)
 
 OVERRIDE_HANDLER(Shutdown) {
   RequestShutdown();
@@ -100,11 +100,11 @@ OVERRIDE_HANDLER(DebugThrow) { throw std::runtime_error("Debug exception"); }
 
 #undef OVERRIDE_HANDLER
 
-#define PROCEDURE(Proc)                                        \
-  template <>                                                  \
-  typename RPC::Proc::Responce Server::HandlerImpl<RPC::Proc>( \
-      const typename RPC::Proc::Request& request) {            \
-    return Handler->Proc(request);                             \
+#define PROCEDURE(Proc)                                                        \
+  template <>                                                                  \
+  typename std::unique_ptr<IHandler::IResponce<typename RPC::Proc::Responce>>  \
+  Server::HandlerImpl<RPC::Proc>(const typename RPC::Proc::Request& request) { \
+    return Handler->Proc(request);                                             \
   }
 
 #include "Procedures.list"
@@ -121,7 +121,7 @@ void Server::GenericHandler(RPCProvider& rpc,
 
   auto request = Proc::Request::Deserialize(header.Data);
   auto responce = HandlerImpl<Proc>(request);
-  rpc.PackMsg(Proc::ID, responce);
+  rpc.PackMsg(Proc::ID, *responce);
 }
 
 void Server::DispatchPackage(RPCProvider& rpc,

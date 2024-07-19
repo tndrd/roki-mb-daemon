@@ -34,11 +34,16 @@ class HelloMessage {
 };
 
 struct IHandler {
-#define PROCEDURE(Proc)                       \
-  virtual RPCDefs::Procedures::Proc::Responce Proc( \
-      const RPCDefs::Procedures::Proc::Request&) = 0;
+  template <typename T>
+  struct IResponce : public T {
+    virtual ~IResponce() = default;
+  };
 
-  #include "Procedures.list"
+#define PROCEDURE(Proc)                                                   \
+  virtual std::unique_ptr<IResponce<RPCDefs::Procedures::Proc::Responce>> \
+  Proc(const RPCDefs::Procedures::Proc::Request&) = 0;
+
+#include "Procedures.list"
 
   virtual ~IHandler() = default;
 
@@ -78,12 +83,14 @@ class Server {
 
  private:
   template <typename Proc>
-  typename Proc::Responce HandlerImpl(
-      const typename Proc::Request& request);
+  typename std::unique_ptr<IHandler::IResponce<typename Proc::Responce>>
+  HandlerImpl(const typename Proc::Request& request);
 
   template <typename Proc>
-  void GenericHandler(RPCProvider& rpc, const RPCProvider::MsgHeader& header, const std::string& prefix);
-  void DispatchPackage(RPCProvider& rpc, const RPCProvider::MsgHeader& header, const std::string& prefix);
+  void GenericHandler(RPCProvider& rpc, const RPCProvider::MsgHeader& header,
+                      const std::string& prefix);
+  void DispatchPackage(RPCProvider& rpc, const RPCProvider::MsgHeader& header,
+                       const std::string& prefix);
 
   static void BlockAllSignals();
   ServerSocket CreateHandlerSocket();
