@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#ifdef RPI_FOUND
+#ifdef PIGPIO_FOUND
 #include <pigpio.h>
 #else
 #include <PiGpioStub.hpp>

@@ -49,7 +49,7 @@ void HwUtils::Execute(const std::string& cmd, int outFd, bool closeFd) {
 }
 
 void HwUtils::ChipReset() {
-  if (gpioInitialize() < 0)
+  if (gpioInitialise() < 0)
     throw FEXCEPT(std::runtime_error, "Failed to initialize GPIO");
 
   gpioSetMode(RESET_PIN, PI_OUTPUT);
