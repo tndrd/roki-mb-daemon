@@ -3,11 +3,23 @@ cmake_minimum_required(VERSION 3.0)
 add_compile_options("-g")
 
 # Set CLI executable name
-set(CLI_EXECUTABLE "mbcli")
+set(CLI_EXECUTABLE mbctl)
+set(MY_INSTALL_PREFIX roki/mb)
+
 add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
 
 set(PIGPIO_IGNORE ON)
+
+set(SCRIPTS_PATH /usr/lib/${MY_INSTALL_PREFIX}/Scripts)
 set(USE_SCRIPT_MOCKS ON)
+
+if(USE_SCRIPT_MOCKS)
+  set(SCRIPTS_DIR ${SCRIPTS_PATH}/Mocks)
+else()
+  set(SCRIPTS_DIR ${SCRIPTS_PATH}/Impls)
+endif()
+
+add_compile_definitions(SCRIPTS_DIR=${SCRIPTS_DIR})
 
 project(roki-mb-daemon)
 
@@ -67,14 +79,12 @@ target_link_libraries(CLI PUBLIC DaemonTools Client)
 add_executable(${CLI_EXECUTABLE} Executables/CLIMain.cpp)
 target_link_libraries(${CLI_EXECUTABLE} PUBLIC CLI)
 
-# Copy Scripts to build
-if(USE_SCRIPT_MOCKS)
-  set(SCRIPTS_DIR Scripts/Mocks)
-else()
-  set(SCRIPTS_DIR Scripts/Impls)
-endif()
+# Installation rules
+install(TARGETS ${CLI_EXECUTABLE} RUNTIME DESTINATION /usr/bin)
 
-add_custom_target(
-  CopyScripts COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}
-                       ${CMAKE_CURRENT_BINARY_DIR}/Scripts)
-add_dependencies(HwUtils CopyScripts)
+set(CMAKE_INSTALL_PREFIX /usr/lib/${MY_INSTALL_PREFIX})
+install(TARGETS Client)
+install(DIRECTORY Inc/ DESTINATION /usr/include/${MY_INSTALL_PREFIX})
+install(DIRECTORY Scripts DESTINATION /usr/lib/${MY_INSTALL_PREFIX})
+
+#install(TARGETS Client )
