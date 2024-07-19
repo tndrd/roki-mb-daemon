@@ -1,1 +1,1 @@
-print("Some port")
+print("Some port", end="")
