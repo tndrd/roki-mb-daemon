@@ -43,6 +43,7 @@ if(NOT PIGPIO_FOUND)
   add_library(pigpio Src/PiGpioStub.cpp)
 else()
   add_compile_definitions(PIGPIO_FOUND)
+  message(INFO " pigpio found!")
 endif()
 
 # Check compile definitions
