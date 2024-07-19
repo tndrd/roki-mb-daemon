@@ -1,5 +1,7 @@
-#ifndef RPI_FOUND
-#pragma message "RPI_FOUND is not set, building with dummy pigpio functions"
+#ifndef PIGPIO_FOUND
+#pragma message "PIGPIO_FOUND is not set, building with dummy pigpio functions"
+#else
+#pragma message "PIGPIO_FOUND is set, building normally"
 #endif
 
 #ifndef SCRIPTS_DIR
@@ -13,13 +15,13 @@
 #ifdef USE_SCRIPT_MOCKS
 #pragma message "USE_SCRIPT_MOCKS is set, building using script mocks"
 #else
-#pragma message "USE_SCRIPT_MOCKS is not set, building using script impls"
+#pragma message "USE_SCRIPT_MOCKS is not set, building normally"
 #endif
 
 #ifdef USE_HANDLER_MOCK
 #pragma message "USE_HANDLER_MOCK is set, building using handler mock"
 #else
-#pragma message "USE_HANDLER_MOCK is not set, building using handler impl"
+#pragma message "USE_HANDLER_MOCK is not set, building normally"
 #endif
 
 #define str(a) #a
