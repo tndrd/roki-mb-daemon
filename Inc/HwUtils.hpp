@@ -8,8 +8,6 @@
 #include <pigpio.h>
 #else
 #include <PiGpioStub.hpp>
-#pragma GCC diagnostics warning \
-    "RPI_FOUND is not set, building with dummy pigpio functions"
 #endif
 
 #include <string.h>
@@ -34,10 +32,8 @@
 
 #define SCRIPTS_PATH xstr(SCRIPTS_DIR) "/"
 
-#pragma message "SCRIPTS_PATH = " SCRIPTS_PATH
-
 #define BOOTLOADER_FLASH SCRIPTS_PATH "BootloaderFlash.py"
-#define BOOTLOADER_START  SCRIPTS_PATH "BootloaderStart.py"
+#define BOOTLOADER_START SCRIPTS_PATH "BootloaderStart.py"
 #define BOOTLOADER_FIND SCRIPTS_PATH "BootloaderFind.py"
 
 #define PYTHON_EXECUTABLE "python3"
@@ -47,7 +43,8 @@ namespace Roki {
 class HwUtils {
  private:
   static void ExecuteChildRoutine(const std::string& cmd, int outFd);
-  static void Execute(const std::string& cmd, int outFd = STDOUT_FILENO, bool closeFd = false);
+  static void Execute(const std::string& cmd, int outFd = STDOUT_FILENO,
+                      bool closeFd = false);
   static void FillStringFromFd(std::string& dst, int srcFd);
 
  public:

@@ -5,13 +5,13 @@ add_compile_options("-g")
 # Set CLI executable name
 set(CLI_EXECUTABLE mbctl)
 set(MY_INSTALL_PREFIX roki/mb)
+set(SCRIPTS_PATH /usr/lib/${MY_INSTALL_PREFIX}/Scripts)
 
 add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
 
 set(PIGPIO_IGNORE ON)
-
-set(SCRIPTS_PATH /usr/lib/${MY_INSTALL_PREFIX}/Scripts)
 set(USE_SCRIPT_MOCKS ON)
+set(USE_HANDLER_MOCK OFF)
 
 if(USE_SCRIPT_MOCKS)
   set(SCRIPTS_DIR ${SCRIPTS_PATH}/Mocks)
@@ -20,6 +20,15 @@ else()
 endif()
 
 add_compile_definitions(SCRIPTS_DIR=${SCRIPTS_DIR})
+
+if(USE_HANDLER_MOCK)
+  add_compile_definitions(USE_HANDLER_MOCK)
+endif()
+
+if(USE_SCRIPT_MOCKS)
+  add_compile_definitions(USE_SCRIPT_MOCKS)
+endif()
+
 
 project(roki-mb-daemon)
 
@@ -39,12 +48,15 @@ else()
   add_compile_definitions(PIGPIO_FOUND)
 endif()
 
+# Check compile definitions
+add_library(CheckDefs Src/CheckDefs.cpp)
+
 # Build Libraries
 add_library(Helpers Src/Helpers.cpp)
 target_link_libraries(Helpers PUBLIC pthread)
 
 add_library(HwUtils Src/HwUtils.cpp)
-target_link_libraries(HwUtils PUBLIC pigpio Helpers)
+target_link_libraries(HwUtils PUBLIC pigpio Helpers CheckDefs)
 
 add_library(FirmwareFSM Src/FirmwareFSM.cpp)
 target_link_libraries(FirmwareFSM PUBLIC HwUtils)
@@ -70,7 +82,7 @@ add_library(Client Src/Client.cpp)
 target_link_libraries(Client PUBLIC Server RPCDefs)
 
 add_library(DaemonTools Src/DaemonTools.cpp)
-target_link_libraries(DaemonTools PUBLIC Server HandlerMock HandlerImpl)
+target_link_libraries(DaemonTools PUBLIC Server HandlerMock HandlerImpl CheckDefs)
 
 add_library(CLI Src/CLI.cpp)
 target_link_libraries(CLI PUBLIC DaemonTools Client)
@@ -87,4 +99,4 @@ install(TARGETS Client)
 install(DIRECTORY Inc/ DESTINATION /usr/include/${MY_INSTALL_PREFIX})
 install(DIRECTORY Scripts DESTINATION /usr/lib/${MY_INSTALL_PREFIX})
 
-#install(TARGETS Client )
+# install(TARGETS Client )
