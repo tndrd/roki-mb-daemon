@@ -54,6 +54,8 @@ class FirmwareFSM {
  public:
   static const char* StateToStr(FWState state);
 
+  std::string GetStateDescription() const; 
+
   FWState GetState() const;
   std::string GetPort() const;
 
