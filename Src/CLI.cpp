@@ -93,6 +93,8 @@ void DaemonCLI::Run() try {
     if (cmd == KeyWords::Start) return DoDaemonStart();
     if (cmd == KeyWords::Stop) return DoDaemonStop();
     if (cmd == KeyWords::Status) return DoDaemonStatus();
+    if (cmd == KeyWords::Kill) return DoDaemonKill();
+    if (cmd == KeyWords::Logs) return DoDaemonLogs();
 
     UnknownToken();
   }
@@ -201,6 +203,25 @@ void DaemonCLI::DoDaemonStop() {
   client.SoftDisconnect();
 }
 
+void DaemonCLI::DoDaemonKill() {
+  auto params = DaemonTools{}.GetParams();
+  std::string cmd = "sudo fuser -k ";
+  cmd += std::to_string(params.Port);
+  cmd += "/tcp";
+  system(cmd.c_str());
+
+  std::cout << cmd << std::endl;
+}
+
+void DaemonCLI::DoDaemonLogs() {
+  auto params = DaemonTools{}.GetParams();
+
+  std::string cmd = "cat ";
+  cmd += params.LogPath;
+
+  system(cmd.c_str());
+}
+
 void DaemonCLI::DoDaemonDebugStart() { DaemonTools{}.RunHere(); }
 
 void DaemonCLI::PutDescription(const TokenBuf& tokens,
@@ -274,6 +295,8 @@ void DaemonCLI::DoHelp() {
   PutDescription({KW::Daemon, KW::Start}, "Starts daemon");
   PutDescription({KW::Daemon, KW::Stop}, "Stops daemon");
   PutDescription({KW::Daemon, KW::Status}, "Prints status info on daemon");
+  PutDescription({KW::Daemon, KW::Logs}, "Prints daemon logs");
+  PutDescription({KW::Daemon, KW::Kill}, "Forcefully kills daemon");
 
   std::cout << std::endl;
 

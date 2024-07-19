@@ -38,6 +38,8 @@ class DaemonCLI {
     DECLARE(Throw, "throw");
     DECLARE(Connect, "connect");
     DECLARE(Disconnect, "disconnect");
+    DECLARE(Kill, "kill");
+    DECLARE(Logs, "logs");
 
 #undef DECLARE
   };
@@ -68,6 +70,8 @@ class DaemonCLI {
   void DoDaemonStart();
   void DoDaemonStop();
   void DoDaemonStatus();
+  void DoDaemonKill();
+  void DoDaemonLogs();
 
   void DoHelp();
 
