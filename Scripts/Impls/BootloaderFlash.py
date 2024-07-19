@@ -4,7 +4,14 @@ import serial
 import time
 import RPi.GPIO as GPIO
 
-firmware_path = input()
+if len(sys.argv) != 2:
+    print(f"Bad argv len: {len(sys.argv)}: {sys.argv}")
+    sys.exit(1)
+
+
+firmware_path = sys.argv[1]
+
+print(f"Flashing {firmware_path}...")
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)

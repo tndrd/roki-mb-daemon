@@ -51,7 +51,8 @@ if __name__ == '__main__':
     # Проверяем на каком COM порту сидит наша плата
     for COM_Index in range(len(COM_List)):
         try:
-            ser = serial.Serial(COM_List[COM_Index], 921600, write_timeout = 0.5)
+            print(f"Asking {COM_List[COM_Index]}...")
+            ser = serial.Serial(COM_List[COM_Index], 921600, timeout = 0.5, write_timeout=0.5)
             ser.write("CMD:GET_PCB_NAME\r\n".encode('ascii'))
             response = ser.readline().decode(encoding = 'UTF-8')        
         except:
@@ -59,8 +60,7 @@ if __name__ == '__main__':
             continue
         if (response == Motherboard_PCB_Name):
             print(response[0:len(response) - 4], "is opened on", COM_List[COM_Index], "device")          
-            COM_Motherboard = serial.Serial(COM_List[COM_Index], 921600,  timeout = 2)
-        
+            COM_Motherboard = serial.Serial(COM_List[COM_Index], 921600,  timeout = 0.5)
     
     if (COM_Motherboard is None):
       print("Motherboard not found")
