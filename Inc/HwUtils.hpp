@@ -29,7 +29,12 @@
 #define RESET_PIN 6
 #define SIGNAL_WIDTH_US 100 * 1000  // 100ms
 
-#define SCRIPTS_PATH "Scripts/"
+#define str(a) #a
+#define xstr(a) str(a)
+
+#define SCRIPTS_PATH xstr(SCRIPTS_DIR) "/"
+
+#pragma message "SCRIPTS_PATH = " SCRIPTS_PATH
 
 #define BOOTLOADER_FLASH SCRIPTS_PATH "BootloaderFlash.py"
 #define BOOTLOADER_START  SCRIPTS_PATH "BootloaderStart.py"
