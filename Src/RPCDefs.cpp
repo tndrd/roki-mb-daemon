@@ -57,7 +57,7 @@ auto RPCDefs::Messages::String::Deserialize(const Byte* ptr) -> String {
   return newString;
 }
 
-std::string RPCDefs::Messages::String::ToCxxStr() {
+std::string RPCDefs::Messages::String::ToCxxStr() const {
   if (!Data) throw FEXCEPT(std::runtime_error, "String data is not defined");
 
   std::string str(Size, 0);
@@ -67,8 +67,30 @@ std::string RPCDefs::Messages::String::ToCxxStr() {
   return str;
 }
 
+auto RPCDefs::Messages::UserData::GetPackedSize() const -> Byte{
+  return Name.GetPackedSize() + sizeof(PID);
+}
+
+void RPCDefs::Messages::UserData::Serialize(Byte* ptr) const {
+  Name.Serialize(ptr);
+  ptr += Name.GetPackedSize();
+
+  *reinterpret_cast<pid_t*>(ptr) = PID;
+}
+
+auto RPCDefs::Messages::UserData::Deserialize(const Byte* ptr) -> UserData {
+  UserData msg;
+
+  msg.Name = String::Deserialize(ptr);
+  ptr += msg.Name.GetPackedSize();
+
+  msg.PID = *reinterpret_cast<const pid_t*>(ptr);
+
+  return msg;
+}
+
 auto RPCDefs::Messages::ChipStatus::GetPackedSize() const -> Byte {
-  return Description.GetPackedSize() + sizeof(Acquired) + sizeof(UserPID);
+  return Description.GetPackedSize() + sizeof(Acquired) + User.GetPackedSize();
 }
 
 void RPCDefs::Messages::ChipStatus::Serialize(Byte* ptr) const {
@@ -78,7 +100,7 @@ void RPCDefs::Messages::ChipStatus::Serialize(Byte* ptr) const {
   *reinterpret_cast<decltype(Acquired)*>(ptr) = Acquired;
   ptr += sizeof(Acquired);
 
-  *reinterpret_cast<decltype(UserPID)*>(ptr) = UserPID;
+  User.Serialize(ptr);
 }
 
 auto RPCDefs::Messages::ChipStatus::Deserialize(const Byte* ptr) -> ChipStatus {
@@ -90,7 +112,7 @@ auto RPCDefs::Messages::ChipStatus::Deserialize(const Byte* ptr) -> ChipStatus {
   result.Acquired = *reinterpret_cast<const decltype(result.Acquired)*>(ptr);
   ptr += sizeof(result.Acquired);
 
-  result.UserPID = *reinterpret_cast<const decltype(result.UserPID)*>(ptr);
+  result.User = UserData::Deserialize(ptr);
 
   return result;
 }
