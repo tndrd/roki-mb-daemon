@@ -6,10 +6,10 @@ using namespace Roki::Helpers;
 std::string FirmwareFSM::FSMException::ComposeMsg(
     std::string operation, FWState got, const std::vector<FWState> expected) {
   std::string msg =
-      "Inappropriate state for operation \"" + operation + "\": " + "\n";
-  msg += "  Got " + std::string(StateToStr(got)) + ",\n";
+      "Inappropriate state for operation \"" + operation + "\": ";
+  msg += "Got " + std::string(StateToStr(got)) + ",";
 
-  msg += "  Expected one of: ";
+  msg += " Expected one of: ";
 
   for (int i = 0; i < expected.size() - 1; ++i) {
     msg += std::string(StateToStr(expected[i])) + ", ";
@@ -81,6 +81,19 @@ auto FirmwareFSM::GetState() const -> FWState {
 std::string FirmwareFSM::GetPort() const {
   LockGuard _{*Mutex};
   return MbPort;
+}
+
+std::string FirmwareFSM::GetStateDescription() const {
+  LockGuard _{*Mutex};
+
+  std::string str;
+
+  if (State == FWState::Transition)
+    str = RoutineName;
+  else
+    str = StateToStr(State);
+
+  return str;
 }
 
 FirmwareFSM::FirmwareFSM()
