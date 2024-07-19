@@ -1,4 +1,6 @@
 #include <DaemonTools.hpp>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 using namespace std::string_literals;
 using namespace Roki;
@@ -86,6 +88,8 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
 
   // Child
   Defer fdGuard{[writeFd]() { close(writeFd); }};
+
+  umask(0);
 
   std::ofstream logfile{params.LogPath};
 
