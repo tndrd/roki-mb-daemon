@@ -103,6 +103,8 @@ void DaemonCLI::Run() try {
     if (cmd == KeyWords::Start) return DoDaemonDebugStart();
     if (cmd == KeyWords::Throw) return DoDaemonDebugThrow();
     if (cmd == KeyWords::Block) return DoDaemonDebugBlock();
+    if (cmd == KeyWords::Connect) return DoDaemonDebugConnect();
+    if (cmd == KeyWords::Disconnect) return DoDaemonDebugDisconnect();
 
     UnknownToken();
   }
@@ -170,9 +172,11 @@ void DaemonCLI::DoChipStatus() {
 
   std::cout << "Is acquired: " << answer << std::endl;
 
-  if (responce.Acquired)
-    std::cout << "User PID:  " << responce.UserPID << std::endl;
-
+  if (responce.Acquired) {
+    std::cout << "User name:  " << responce.User.Name.ToCxxStr() << std::endl;
+    std::cout << "User PID:   " << responce.User.PID << std::endl;
+  }
+  
   client.SoftDisconnect();
 }
 
@@ -197,7 +201,7 @@ void DaemonCLI::DoDaemonStop() {
   client.SoftDisconnect();
 }
 
-void DaemonCLI::DoDaemonDebugStart() { DaemonTools{}.RunHere(true); }
+void DaemonCLI::DoDaemonDebugStart() { DaemonTools{}.RunHere(); }
 
 void DaemonCLI::PutDescription(const TokenBuf& tokens,
                                const std::string& description) {
@@ -218,6 +222,30 @@ void DaemonCLI::DoDaemonDebugBlock() {
   client.SoftDisconnect();
 }
 
+void DaemonCLI::DoDaemonDebugConnect() {
+  static const char userName[] = "CLI Debug";
+
+  Client client = MakeClient();
+
+
+  Client::Msgs::UserData user;
+  user.Name.Data = userName;
+  user.Name.Size = sizeof(userName) - 1;
+  user.PID = getpid();
+
+  auto responce = client.Call<Client::Proc::Connect>(user);
+  
+  std::cout << "Motherboard port is " << responce.ToCxxStr() << std::endl;
+  
+  client.SoftDisconnect();
+}
+
+void DaemonCLI::DoDaemonDebugDisconnect() {
+  Client client = MakeClient();
+  client.Call<Client::Proc::Disconnect>({});
+  client.SoftDisconnect();
+}
+
 void DaemonCLI::DoDaemonDebugThrow() {
   Client client = MakeClient();
 
@@ -229,7 +257,6 @@ void DaemonCLI::DoDaemonDebugThrow() {
 
   client.SoftDisconnect();
 }
-
 void DaemonCLI::PrintUsage() const {
   std::cout << "Usage: " EXECUTABLE_NAME " <COMMAND> <ARGS>" << std::endl;
 }
@@ -266,6 +293,9 @@ void DaemonCLI::DoHelp() {
                  "Performs blocking request on daemon");
   PutDescription({KW::Debug, KW::Throw},
                  "Performs throwing request on daemon");
+
+  PutDescription({KW::Debug, KW::Connect}, "Marks motherboard port acquired");
+  PutDescription({KW::Debug, KW::Disconnect}, "Frees motherboard port");
 
   std::cout << std::endl;
 }

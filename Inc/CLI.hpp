@@ -36,6 +36,8 @@ class DaemonCLI {
     DECLARE(Debug, "debug");
     DECLARE(Block, "block");
     DECLARE(Throw, "throw");
+    DECLARE(Connect, "connect");
+    DECLARE(Disconnect, "disconnect");
 
 #undef DECLARE
   };
@@ -72,6 +74,8 @@ class DaemonCLI {
   void DoDaemonDebugStart();
   void DoDaemonDebugBlock();
   void DoDaemonDebugThrow();
+  void DoDaemonDebugConnect();
+  void DoDaemonDebugDisconnect();
 
  public:
   static void Execute(const TokenBuf& tokens);
