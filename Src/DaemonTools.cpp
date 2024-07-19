@@ -65,7 +65,7 @@ auto DaemonTools::ReadResult(int fd) -> LaunchResult {
   return result;
 }
 
-auto DaemonTools::LaunchAt(const Params& params, bool useMocks) -> LaunchResult {
+auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
   int pipeFd[2] = {};
 
   if (pipe(pipeFd) < 0) throw FEXCEPT(ErrnoException, "pipe()", errno);
@@ -103,12 +103,12 @@ auto DaemonTools::LaunchAt(const Params& params, bool useMocks) -> LaunchResult 
 
   try {
     server = std::make_unique<Server>(INADDR_ANY, params.Port, params.Backlog,
-                                      logfile, MakeHandler(useMocks));
+                                      logfile, MakeHandler());
   } catch (std::exception& e) {
     PutError(writeFd, "Failed to create server: "s + e.what());
     return {};
   }
-  
+
   PutAck(writeFd);
   fdGuard.Cancel();
 
@@ -166,22 +166,24 @@ void DaemonTools::Launch() {
     throw FEXCEPT(std::runtime_error, "Failed to run daemon: " + result.Msg);
 }
 
-void DaemonTools::RunHere(bool useMocks) {
+void DaemonTools::RunHere() {
   if (IsRunning()) throw FEXCEPT(std::runtime_error, "Daemon already running");
 
   auto params = GetParams();
 
-  Server server{INADDR_ANY, params.Port, params.Backlog, std::cout, MakeHandler(useMocks)};
+  Server server{INADDR_ANY, params.Port, params.Backlog, std::cout,
+                MakeHandler()};
   server.Run();
 }
 
-std::unique_ptr<IHandler> DaemonTools::MakeHandler(bool useMocks) {
+std::unique_ptr<IHandler> DaemonTools::MakeHandler() {
   std::unique_ptr<IHandler> handler;
 
-    if (useMocks) {
-      handler = std::make_unique<HandlerMock>();
-    } else {
-      assert(0);
-    }
+#ifdef USE_HANDLER_MOCK
+  handler = std::make_unique<HandlerMock>();
+#else
+  handler = std::make_unique<HandlerImpl>();
+#endif
+
   return handler;
 }
