@@ -9,8 +9,18 @@ set(SCRIPTS_PATH /usr/lib/${MY_INSTALL_PREFIX}/Scripts)
 
 add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
 
+if (DEFINED ENV{ROKI_USE_HARDWARE_MOCKS})
+  set(USE_SCRIPT_MOCKS ON)
+  set(USE_PIGPIO_MOCK ON)
+else()
+  set(USE_SCRIPT_MOCKS OFF)
+  set(USE_PIGPIO_MOCK OFF)
+endif()
+
+# Make pigpio stop ignore empty pigpio calls
 set(PIGPIO_IGNORE ON)
-set(USE_SCRIPT_MOCKS OFF)
+
+# Use dummy RPC handler 
 set(USE_HANDLER_MOCK OFF)
 
 if(USE_SCRIPT_MOCKS)
@@ -29,19 +39,17 @@ if(USE_SCRIPT_MOCKS)
   add_compile_definitions(USE_SCRIPT_MOCKS)
 endif()
 
-
 project(roki-mb-daemon)
 include_directories(Inc/)
 
 # Provide pigpio
-find_library(PIGPIO_FOUND pigpio)
-
-if(NOT PIGPIO_FOUND)
+if(USE_PIGPIO_MOCK)
   if(PIGPIO_IGNORE)
     add_compile_definitions(PIGPIO_IGNORE)
   endif()
   add_library(pigpio Src/PiGpioStub.cpp)
 else()
+  find_library(PIGPIO_FOUND pigpio)
   add_compile_definitions(PIGPIO_FOUND)
   message(INFO " pigpio found!")
 endif()
