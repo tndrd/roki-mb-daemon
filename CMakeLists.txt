@@ -10,6 +10,7 @@ set(SCRIPTS_PATH /usr/lib/${MY_INSTALL_PREFIX}/Scripts)
 add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
 
 if (DEFINED ENV{ROKI_USE_HARDWARE_MOCKS})
+  message(INFO " Using hardware mocks")
   set(USE_SCRIPT_MOCKS ON)
   set(USE_PIGPIO_MOCK ON)
 else()
