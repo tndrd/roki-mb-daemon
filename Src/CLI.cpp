@@ -116,8 +116,10 @@ void DaemonCLI::Run() try {
   UnknownToken();
 } catch (SyntaxException& e) {
   MakeSyntaxErrorMessage(e.GetTokenIndex(), e.what());
+  throw;
 } catch (std::exception& e) {
   MakeErrorMessage(e.what());
+  throw;
 }
 
 DaemonCLI::DaemonCLI(const TokenBuf& tokens)
