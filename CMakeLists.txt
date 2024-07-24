@@ -4,7 +4,7 @@ add_compile_options("-g")
 
 # Set CLI executable name
 set(CLI_EXECUTABLE mbctl)
-set(MY_INSTALL_PREFIX roki/mb)
+set(MY_INSTALL_PREFIX roki/mb/daemon)
 set(SCRIPTS_PATH /usr/lib/${MY_INSTALL_PREFIX}/Scripts)
 
 add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
@@ -105,6 +105,6 @@ install(TARGETS ${CLI_EXECUTABLE} RUNTIME DESTINATION /usr/bin)
 set(CMAKE_INSTALL_PREFIX /usr/lib/${MY_INSTALL_PREFIX})
 install(TARGETS Client)
 install(DIRECTORY Inc/ DESTINATION /usr/include/${MY_INSTALL_PREFIX})
-install(DIRECTORY Scripts DESTINATION /usr/lib/${MY_INSTALL_PREFIX})
+install(DIRECTORY Scripts/ DESTINATION ${SCRIPTS_PATH})
 
 # install(TARGETS Client )
