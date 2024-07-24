@@ -1,7 +1,10 @@
 #!/bin/bash
 set -e
 
-mkdir build
+# Installing dependencies
+sudo apt-get install git cmake python3
+
+mkdir -p build
 cd build
 
 echo "Building..."
