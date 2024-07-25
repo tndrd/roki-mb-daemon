@@ -1,11 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
 
-set(SCRIPTS_DIR "/")
-set(CLI_EXECUTABLE "mbctl")
-set(DAEMON_PORT_ENV "port")
-set(DAEMON_LOGFILE_ENV "logs")
-set(DAEMON_BACKLOG_ENV "back")
-
 function(ASSERT_VAR VARNAME)
   if (NOT DEFINED ${VARNAME})
     message(FATAL_ERROR ${VARNAME} " var is not set")
