@@ -6,10 +6,6 @@
 #include "HandlerMock.hpp"
 #include "HandlerImpl.hpp"
 
-#define DAEMON_PORT_ENV "MB_DAEMON_PORT"
-#define DAEMON_LOGFILE_ENV "MB_DAEMON_LOGFILE"
-#define DAEMON_BACKLOG_ENV "MB_DAEMON_BACKLOG"
-
 namespace Roki {
 class DaemonTools {
  private:

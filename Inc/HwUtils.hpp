@@ -24,20 +24,6 @@
 #include <stdexcept>
 #include <string>
 
-#define RESET_PIN 6
-#define SIGNAL_WIDTH_US 100 * 1000  // 100ms
-
-#define str(a) #a
-#define xstr(a) str(a)
-
-#define SCRIPTS_PATH xstr(SCRIPTS_DIR) "/"
-
-#define BOOTLOADER_FLASH SCRIPTS_PATH "BootloaderFlash.py"
-#define BOOTLOADER_START SCRIPTS_PATH "BootloaderStart.py"
-#define BOOTLOADER_FIND SCRIPTS_PATH "BootloaderFind.py"
-
-#define PYTHON_EXECUTABLE "python3"
-
 namespace Roki {
 
 class HwUtils {

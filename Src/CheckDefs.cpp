@@ -12,6 +12,18 @@
 #error CLI_EXECUTABLE is not set
 #endif
 
+#ifndef DAEMON_PORT_ENV
+#error DAEMON_PORT_ENV is not defined
+#endif
+
+#ifndef DAEMON_LOGFILE_ENV
+#error DAEMON_LOGFILE_ENV is not defined
+#endif
+
+#ifndef DAEMON_BACKLOG_ENV
+#error DAEMON_BACKLOG_ENV is not defined
+#endif
+
 #ifdef USE_SCRIPT_MOCKS
 #pragma message "USE_SCRIPT_MOCKS is set, building using script mocks"
 #else
@@ -29,3 +41,6 @@
 
 #pragma message "SCRIPTS_DIR = " xstr(SCRIPTS_DIR)
 #pragma message "CLI_EXECUTABLE = " xstr(CLI_EXECUTABLE)
+#pragma message "DAEMON_PORT_ENV = " xstr(DAEMON_PORT_ENV)
+#pragma message "DAEMON_LOGFILE_ENV = " xstr(DAEMON_LOGFILE_ENV)
+#pragma message "DAEMON_BACKLOG_ENV = " xstr(DAEMON_BACKLOG_ENV)

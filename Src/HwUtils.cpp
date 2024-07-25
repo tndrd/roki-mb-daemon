@@ -1,6 +1,20 @@
 #include "HwUtils.hpp"
 
-#define FILLSTRINGFROMFD_BUFSIZE 63  // Excluding possible \0
+#define RESET_PIN 6
+#define SIGNAL_WIDTH_US 100 * 1000  // 100ms
+
+#define str(a) #a
+#define xstr(a) str(a)
+
+#define SCRIPTS_PATH xstr(SCRIPTS_DIR)
+
+#define BOOTLOADER_FLASH SCRIPTS_PATH "BootloaderFlash.py"
+#define BOOTLOADER_START SCRIPTS_PATH "BootloaderStart.py"
+#define BOOTLOADER_FIND SCRIPTS_PATH "BootloaderFind.py"
+
+#define PYTHON_EXECUTABLE "python3"
+
+#define FILLSTRINGFROMFD_BUFSIZE 64
 #define PYTHON_RUN(script) PYTHON_EXECUTABLE " " script " "
 
 using namespace Roki;

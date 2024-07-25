@@ -6,6 +6,9 @@ using namespace std::string_literals;
 using namespace Roki;
 using namespace Helpers;
 
+#define str(a) #a
+#define xstr(a) str(a)
+
 void DaemonTools::ReadToBuf(int fd, size_t size) {
   char* buf = Buffer.data();
   size_t total = 0;
@@ -127,16 +130,16 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
 auto DaemonTools::GetParams() -> Params {
   Params params;
 
-  const char* portStr = std::getenv(DAEMON_PORT_ENV);
-  const char* fileStr = std::getenv(DAEMON_LOGFILE_ENV);
-  const char* backStr = std::getenv(DAEMON_BACKLOG_ENV);
+  const char* portStr = std::getenv(xstr(DAEMON_PORT_ENV));
+  const char* fileStr = std::getenv(xstr(DAEMON_LOGFILE_ENV));
+  const char* backStr = std::getenv(xstr(DAEMON_BACKLOG_ENV));
 
   if (!portStr)
-    throw FEXCEPT(std::runtime_error, DAEMON_PORT_ENV " is not defined");
+    throw FEXCEPT(std::runtime_error, xstr(DAEMON_PORT_ENV) " is not defined");
   if (!fileStr)
-    throw FEXCEPT(std::runtime_error, DAEMON_LOGFILE_ENV " is not defined");
+    throw FEXCEPT(std::runtime_error, xstr(DAEMON_LOGFILE_ENV) " is not defined");
   if (!backStr)
-    throw FEXCEPT(std::runtime_error, DAEMON_BACKLOG_ENV " is not defined");
+    throw FEXCEPT(std::runtime_error, xstr(DAEMON_BACKLOG_ENV) " is not defined");
 
   params.Port = std::stoul(portStr);
   params.Backlog = std::stoul(backStr);

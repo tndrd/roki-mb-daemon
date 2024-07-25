@@ -1,16 +1,7 @@
 #include "CLI.hpp"
 
-#ifndef CLI_EXECUTABLE
-#pragma GCC diaginostic error "Executable name is not specified"
-
-// Define symbol to supress IntelliSense error
-#define CLI_EXECUTABLE NAME
-#endif
-
-#define STRINGIFY(a) #a
-#define XSTRINGIFY(a) STRINGIFY(a)
-
-#define EXECUTABLE_NAME XSTRINGIFY(CLI_EXECUTABLE)
+#define str(a) #a
+#define xstr(a) str(a)
 
 #define TAB " - "
 
@@ -62,7 +53,7 @@ void DaemonCLI::MakeSyntaxErrorMessage(size_t tokenInd,
 
   PrintUsage();
 
-  std::cout << "See \"" << EXECUTABLE_NAME << " " << KeyWords::Help << "\""
+  std::cout << "See \"" << xstr(CLI_EXECUTABLE) << " " << KeyWords::Help << "\""
             << std::endl;
 }
 
@@ -230,7 +221,7 @@ void DaemonCLI::PutDescription(const TokenBuf& tokens,
                                const std::string& description) {
   assert(tokens.size() > 0);
 
-  std::cout << TAB "\"" EXECUTABLE_NAME " ";
+  std::cout << TAB "\"" xstr(CLI_EXECUTABLE) " ";
 
   for (int i = 0; i < tokens.size() - 1; ++i) std::cout << tokens[i] << " ";
 
@@ -281,7 +272,7 @@ void DaemonCLI::DoDaemonDebugThrow() {
   client.SoftDisconnect();
 }
 void DaemonCLI::PrintUsage() const {
-  std::cout << "Usage: " EXECUTABLE_NAME " <COMMAND> <ARGS>" << std::endl;
+  std::cout << "Usage: " xstr(CLI_EXECUTABLE) " <COMMAND> <ARGS>" << std::endl;
 }
 
 void DaemonCLI::DoHelp() {

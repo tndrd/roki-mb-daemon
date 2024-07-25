@@ -1,5 +1,23 @@
 cmake_minimum_required(VERSION 3.8)
 
+set(SCRIPTS_DIR "/")
+set(CLI_EXECUTABLE "mbctl")
+set(DAEMON_PORT_ENV "port")
+set(DAEMON_LOGFILE_ENV "logs")
+set(DAEMON_BACKLOG_ENV "back")
+
+function(ASSERT_VAR VARNAME)
+  if (NOT DEFINED ${VARNAME})
+    message(FATAL_ERROR ${VARNAME} " var is not set")
+  endif()
+endfunction()
+
+ASSERT_VAR(SCRIPTS_DIR)
+ASSERT_VAR(CLI_EXECUTABLE)
+ASSERT_VAR(DAEMON_PORT_ENV)
+ASSERT_VAR(DAEMON_LOGFILE_ENV)
+ASSERT_VAR(DAEMON_BACKLOG_ENV)
+
 if (DEFINED ENV{ROKI_USE_HARDWARE_MOCKS})
   message(INFO " Using hardware mocks")
   set(USE_SCRIPT_MOCKS ON)
@@ -10,17 +28,20 @@ else()
   set(USE_PIGPIO_MOCK OFF)
 endif()
 
-# Make pigpio stop ignore empty pigpio calls
-set(PIGPIO_IGNORE ON)
-
 # Use dummy RPC handler 
 set(USE_HANDLER_MOCK OFF)
 
 if(USE_SCRIPT_MOCKS)
-  add_compile_definitions(SCRIPTS_PREFIX=Mocks/)
+  set(FINAL_SCRIPTS_PATH ${SCRIPTS_DIR}Mocks/)
 else()
-  add_compile_definitions(SCRIPTS_PREFIX=Impls/)
+  set(FINAL_SCRIPTS_PATH ${SCRIPTS_DIR}Impls/)
 endif()
+
+add_compile_definitions(SCRIPTS_DIR=${FINAL_SCRIPTS_PATH})
+add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
+add_compile_definitions(DAEMON_PORT_ENV=${DAEMON_PORT_ENV})
+add_compile_definitions(DAEMON_LOGFILE_ENV=${DAEMON_LOGFILE_ENV})
+add_compile_definitions(DAEMON_BACKLOG_ENV=${DAEMON_BACKLOG_ENV})
 
 if(USE_HANDLER_MOCK)
   add_compile_definitions(USE_HANDLER_MOCK)
@@ -31,12 +52,9 @@ include_directories(Inc/)
 
 # Provide pigpio
 if(USE_PIGPIO_MOCK)
-  if(PIGPIO_IGNORE)
-    add_compile_definitions(PIGPIO_IGNORE)
-  endif()
   add_library(pigpio Src/PiGpioStub.cpp)
 else()
-  find_library(PIGPIO_FOUND pigpio)
+  find_library(pigpio)
   add_compile_definitions(PIGPIO_FOUND)
   message(INFO " pigpio found!")
 endif()
