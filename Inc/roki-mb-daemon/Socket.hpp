@@ -2,11 +2,11 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include <roki-mb-daemon/Helpers.hpp>
 #include <cassert>
 #include <cstdlib>
+#include <roki-mb-daemon/Helpers.hpp>
 
-namespace Roki {
+namespace MbDaemon {
 
 struct Connection {
  private:
@@ -64,4 +64,4 @@ class ClientSocket {
   std::string GetAddr() const;
 };
 
-}  // namespace Roki
+}  // namespace MbDaemon

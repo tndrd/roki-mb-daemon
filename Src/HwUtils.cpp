@@ -17,7 +17,7 @@
 #define FILLSTRINGFROMFD_BUFSIZE 64
 #define PYTHON_RUN(script) PYTHON_EXECUTABLE " " script " "
 
-using namespace Roki;
+using namespace MbDaemon;
 using namespace Helpers;
 
 void HwUtils::ExecuteChildRoutine(const std::string& cmd, int outFd) {

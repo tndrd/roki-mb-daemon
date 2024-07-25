@@ -6,7 +6,7 @@
 #define TAB " - "
 
 using namespace std::string_literals;
-using namespace Roki;
+using namespace MbDaemon;
 using namespace Helpers;
 
 DaemonCLI::SyntaxException::SyntaxException(size_t tokenIndex,
@@ -171,7 +171,7 @@ void DaemonCLI::DoChipStatus() {
     std::cout << "User name:  " << responce.User.Name.ToCxxStr() << std::endl;
     std::cout << "User PID:   " << responce.User.PID << std::endl;
   }
-  
+
   client.SoftDisconnect();
 }
 
@@ -241,16 +241,15 @@ void DaemonCLI::DoDaemonDebugConnect() {
 
   Client client = MakeClient();
 
-
   Client::Msgs::UserData user;
   user.Name.Data = userName;
   user.Name.Size = sizeof(userName) - 1;
   user.PID = getpid();
 
   auto responce = client.Call<Client::Proc::Connect>(user);
-  
+
   std::cout << "Motherboard port is " << responce.ToCxxStr() << std::endl;
-  
+
   client.SoftDisconnect();
 }
 
@@ -278,7 +277,7 @@ void DaemonCLI::PrintUsage() const {
 void DaemonCLI::DoHelp() {
   using KW = KeyWords;
 
-  std::cout << "Roki Motherboard Firmware Manager CLI" << std::endl;
+  std::cout << "MbDaemon Motherboard Firmware Manager CLI" << std::endl;
   std::cout << "Author: Lekhterev V.V. @tndrd, Starkit 2024"
                "\n"
             << std::endl;
@@ -305,10 +304,8 @@ void DaemonCLI::DoHelp() {
   std::cout << std::endl << "List of debug commands: " << std::endl;
 
   PutDescription({KW::Debug, KW::Start}, "Launches daemon in this session");
-  PutDescription({KW::Debug, KW::Block},
-                 "Performs blocking request on daemon");
-  PutDescription({KW::Debug, KW::Throw},
-                 "Performs throwing request on daemon");
+  PutDescription({KW::Debug, KW::Block}, "Performs blocking request on daemon");
+  PutDescription({KW::Debug, KW::Throw}, "Performs throwing request on daemon");
 
   PutDescription({KW::Debug, KW::Connect}, "Marks motherboard port acquired");
   PutDescription({KW::Debug, KW::Disconnect}, "Frees motherboard port");

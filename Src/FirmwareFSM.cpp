@@ -1,12 +1,11 @@
 #include "roki-mb-daemon/FirmwareFSM.hpp"
 
-using namespace Roki;
-using namespace Roki::Helpers;
+using namespace MbDaemon;
+using namespace MbDaemon::Helpers;
 
 std::string FirmwareFSM::FSMException::ComposeMsg(
     std::string operation, FWState got, const std::vector<FWState> expected) {
-  std::string msg =
-      "Inappropriate state for operation \"" + operation + "\": ";
+  std::string msg = "Inappropriate state for operation \"" + operation + "\": ";
   msg += "Got " + std::string(StateToStr(got)) + ",";
 
   msg += " Expected one of: ";

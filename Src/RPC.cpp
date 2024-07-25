@@ -1,6 +1,6 @@
 #include "roki-mb-daemon/RPC.hpp"
 
-using namespace Roki;
+using namespace MbDaemon;
 using namespace Helpers;
 
 void RPCProvider::RecvToBuffer(size_t size) {

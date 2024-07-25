@@ -14,7 +14,7 @@
 #include <mutex>
 #include <utility>
 
-namespace Roki {
+namespace MbDaemon {
 
 namespace Helpers {
 
@@ -117,4 +117,4 @@ struct TermTools {
 using LockGuard = std::lock_guard<std::mutex>;
 
 }  // namespace Helpers
-}  // namespace Roki
+}  // namespace MbDaemon

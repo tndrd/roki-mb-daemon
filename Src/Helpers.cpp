@@ -1,6 +1,6 @@
 #include "roki-mb-daemon/Helpers.hpp"
 
-using namespace Roki::Helpers;
+using namespace MbDaemon::Helpers;
 
 DescriptorWrapper::DescriptorWrapper(int newFd) : Fd{newFd} {}
 DescriptorWrapper::~DescriptorWrapper() { close(Fd.Get()); }
@@ -20,7 +20,7 @@ void Defer::Cancel() {
   Deferred = [] {};
 }
 
-std::string Roki::Helpers::IpToString(AddrType addr) {
+std::string MbDaemon::Helpers::IpToString(AddrType addr) {
   sockaddr_in sa;
   sa.sin_addr.s_addr = addr;
 
@@ -33,7 +33,7 @@ std::string Roki::Helpers::IpToString(AddrType addr) {
   return str;
 }
 
-AddrType Roki::Helpers::IpFromString(const std::string& str) {
+AddrType MbDaemon::Helpers::IpFromString(const std::string& str) {
 #define MSG "Failed to parse addr from string via inet_pton()"
   sockaddr_in sa;
 
@@ -49,7 +49,7 @@ AddrType Roki::Helpers::IpFromString(const std::string& str) {
 #undef MSG
 }
 
-static void Roki::Helpers::SetSigMask(int how) {
+static void MbDaemon::Helpers::SetSigMask(int how) {
   sigset_t newSet;
 
   sigfillset(&newSet);

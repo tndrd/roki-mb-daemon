@@ -16,7 +16,7 @@
 #include "RPCDefs.hpp"
 #include "Socket.hpp"
 
-namespace Roki {
+namespace MbDaemon {
 
 class HelloMessage {
  private:
@@ -106,6 +106,6 @@ class Server {
   void Run();
   Server(Helpers::AddrType addr, Helpers::PortType port, size_t backlog,
          std::ostream& logger, std::unique_ptr<IHandler>&& handler);
-};  // namespace Roki
+};  // namespace MbDaemon
 
-}  // namespace Roki
+}  // namespace MbDaemon

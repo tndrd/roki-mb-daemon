@@ -6,7 +6,7 @@
 
 #include "roki-mb-daemon/Server.hpp"
 
-namespace Roki {
+namespace MbDaemon {
 class HandlerImpl final : public IHandler {
  private:
   FirmwareFSM Firmware;
@@ -30,4 +30,4 @@ class HandlerImpl final : public IHandler {
 #include "roki-mb-daemon/Procedures.list"
 #undef PROCEDURE
 };
-}  // namespace Roki
+}  // namespace MbDaemon

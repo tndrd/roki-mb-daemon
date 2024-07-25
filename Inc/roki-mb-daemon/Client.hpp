@@ -5,7 +5,7 @@
 #include <roki-mb-daemon/Server.hpp>
 #include <roki-mb-daemon/Socket.hpp>
 
-namespace Roki {
+namespace MbDaemon {
 
 class Client {
  private:
@@ -55,4 +55,4 @@ class Client {
   void SoftDisconnect();
 };
 
-}  // namespace Roki
+}  // namespace MbDaemon

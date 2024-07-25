@@ -1,6 +1,6 @@
 #include "roki-mb-daemon/Socket.hpp"
 
-using namespace Roki;
+using namespace MbDaemon;
 using namespace Helpers;
 
 Connection::Connection(DescriptorWrapper&& fd, const std::string& addr,
@@ -21,7 +21,8 @@ void ServerSocket::DisableLingering() {
   int ret = setsockopt(SockFd.Get(), SOL_SOCKET, SO_LINGER, &arg, sizeof(arg));
   if (ret == 0) return;
 
-  throw FEXCEPT(ErrnoException, "Failed to disable lingering via setsockopt()", errno);
+  throw FEXCEPT(ErrnoException, "Failed to disable lingering via setsockopt()",
+                errno);
 }
 
 ServerSocket::ServerSocket(AddrType addr, size_t port, size_t backlog)

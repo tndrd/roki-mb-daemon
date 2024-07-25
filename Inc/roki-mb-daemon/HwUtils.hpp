@@ -16,15 +16,15 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <roki-mb-daemon/Helpers.hpp>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <roki-mb-daemon/Helpers.hpp>
 #include <stdexcept>
 #include <string>
 
-namespace Roki {
+namespace MbDaemon {
 
 class HwUtils {
  private:
@@ -39,4 +39,4 @@ class HwUtils {
   static void BootloaderStart();
   static std::string BootloaderFind();
 };
-}  // namespace Roki
+}  // namespace MbDaemon

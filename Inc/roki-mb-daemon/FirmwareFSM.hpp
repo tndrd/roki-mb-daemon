@@ -7,7 +7,7 @@
 
 #include "roki-mb-daemon/HwUtils.hpp"
 
-namespace Roki {
+namespace MbDaemon {
 class FirmwareFSM {
  public:
   enum class FWState { Boot, Running, Transition, Fault };
@@ -54,7 +54,7 @@ class FirmwareFSM {
  public:
   static const char* StateToStr(FWState state);
 
-  std::string GetStateDescription() const; 
+  std::string GetStateDescription() const;
 
   FWState GetState() const;
   std::string GetPort() const;
@@ -66,4 +66,4 @@ class FirmwareFSM {
   void StartFirmware();
 };
 
-}  // namespace Roki
+}  // namespace MbDaemon

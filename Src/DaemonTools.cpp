@@ -1,9 +1,10 @@
-#include <roki-mb-daemon/DaemonTools.hpp>
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <roki-mb-daemon/DaemonTools.hpp>
+
 using namespace std::string_literals;
-using namespace Roki;
+using namespace MbDaemon;
 using namespace Helpers;
 
 #define str(a) #a
@@ -137,9 +138,11 @@ auto DaemonTools::GetParams() -> Params {
   if (!portStr)
     throw FEXCEPT(std::runtime_error, xstr(DAEMON_PORT_ENV) " is not defined");
   if (!fileStr)
-    throw FEXCEPT(std::runtime_error, xstr(DAEMON_LOGFILE_ENV) " is not defined");
+    throw FEXCEPT(std::runtime_error,
+                  xstr(DAEMON_LOGFILE_ENV) " is not defined");
   if (!backStr)
-    throw FEXCEPT(std::runtime_error, xstr(DAEMON_BACKLOG_ENV) " is not defined");
+    throw FEXCEPT(std::runtime_error,
+                  xstr(DAEMON_BACKLOG_ENV) " is not defined");
 
   params.Port = std::stoul(portStr);
   params.Backlog = std::stoul(backStr);

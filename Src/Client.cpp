@@ -1,6 +1,6 @@
 #include "roki-mb-daemon/Client.hpp"
 
-using namespace Roki;
+using namespace MbDaemon;
 
 using namespace Helpers;
 

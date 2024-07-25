@@ -3,7 +3,7 @@
 #include "Helpers.hpp"
 #include "Socket.hpp"
 
-namespace Roki {
+namespace MbDaemon {
 
 class RPCProvider {
  private:
@@ -46,4 +46,4 @@ class RPCProvider {
  public:
   RPCProvider(Connection&& connection, uint8_t errCode);
 };
-}  // namespace Roki
+}  // namespace MbDaemon

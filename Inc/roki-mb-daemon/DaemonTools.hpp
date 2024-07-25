@@ -2,11 +2,11 @@
 
 #include <fstream>
 
-#include "roki-mb-daemon/Server.hpp"
-#include "roki-mb-daemon/HandlerMock.hpp"
 #include "roki-mb-daemon/HandlerImpl.hpp"
+#include "roki-mb-daemon/HandlerMock.hpp"
+#include "roki-mb-daemon/Server.hpp"
 
-namespace Roki {
+namespace MbDaemon {
 class DaemonTools {
  private:
   static constexpr size_t BufferSize = 256;
@@ -49,4 +49,4 @@ class DaemonTools {
   void Launch();
   void RunHere();
 };
-}  // namespace Roki
+}  // namespace MbDaemon

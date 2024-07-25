@@ -10,7 +10,7 @@
 
 #include "Helpers.hpp"
 
-namespace Roki {
+namespace MbDaemon {
 struct RPCDefs {
   using Byte = char;
 
@@ -131,4 +131,4 @@ struct RPCDefs {
     };
   };
 };
-}  // namespace Roki
+}  // namespace MbDaemon

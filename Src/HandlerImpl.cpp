@@ -1,6 +1,6 @@
 #include "roki-mb-daemon/HandlerImpl.hpp"
 
-using namespace Roki;
+using namespace MbDaemon;
 
 using Msgs = RPCDefs::Messages;
 using Proc = RPCDefs::Procedures;

@@ -4,7 +4,7 @@
 #include "roki-mb-daemon/DaemonTools.hpp"
 #include "roki-mb-daemon/RPCDefs.hpp"
 
-namespace Roki {
+namespace MbDaemon {
 
 class DaemonCLI {
  private:
@@ -87,4 +87,4 @@ class DaemonCLI {
 
   DaemonCLI(const TokenBuf& tokens);
 };
-}  // namespace Roki
+}  // namespace MbDaemon

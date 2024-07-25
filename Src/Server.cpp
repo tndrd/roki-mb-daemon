@@ -1,6 +1,6 @@
 #include "roki-mb-daemon/Server.hpp"
 
-using namespace Roki;
+using namespace MbDaemon;
 using namespace Helpers;
 
 using ForcedUnwind = abi::__forced_unwind;
@@ -151,7 +151,8 @@ void Server::BlockAllSignals() {
 }
 
 void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
-                            HandlerId id, std::condition_variable& readyCond, bool& ready) {
+                            HandlerId id, std::condition_variable& readyCond,
+                            bool& ready) {
   BlockAllSignals();
   assert(self);
 
@@ -260,8 +261,8 @@ void Server::ShutdownRoutine() {
     if (ret == 0) continue;
 
     Logger << MainThreadPrefix << "Warning: Failed to cancel handler #"
-           << pair.first << ": "
-           << "errno #" << ret << ": " << strerror(ret) << std::endl;
+           << pair.first << ": " << "errno #" << ret << ": " << strerror(ret)
+           << std::endl;
   }
   ReadyToJoin.notify_all();
 }
@@ -334,13 +335,14 @@ void Server::Run() {
       bool ready = false;
 
       std::thread handlerThread(Server::HandlerRoutine, this,
-                                std::move(handlerSocket), newId, std::ref(readyCond), std::ref(ready));
+                                std::move(handlerSocket), newId,
+                                std::ref(readyCond), std::ref(ready));
 
       JoinablesMutex.lock();
       Handlers.insert({newId, std::move(handlerThread)});
       JoinablesMutex.unlock();
 
-      readyCond.wait(lock, [&ready]{return ready;});
+      readyCond.wait(lock, [&ready] { return ready; });
 
       HelloMessage hello{handlerSocket.GetPort()};
       hello.Send(helloConn.GetFd());

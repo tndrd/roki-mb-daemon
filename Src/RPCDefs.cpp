@@ -1,6 +1,6 @@
 #include "roki-mb-daemon/RPCDefs.hpp"
 
-using namespace Roki;
+using namespace MbDaemon;
 using namespace Helpers;
 
 const char* RPCDefs::ProcIDs::ToStr(Byte id) {
@@ -67,7 +67,7 @@ std::string RPCDefs::Messages::String::ToCxxStr() const {
   return str;
 }
 
-auto RPCDefs::Messages::UserData::GetPackedSize() const -> Byte{
+auto RPCDefs::Messages::UserData::GetPackedSize() const -> Byte {
   return Name.GetPackedSize() + sizeof(PID);
 }
 
