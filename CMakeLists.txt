@@ -1,13 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
-
-add_compile_options("-g")
-
-# Set CLI executable name
-set(CLI_EXECUTABLE mbctl)
-set(MY_INSTALL_PREFIX roki/mb/daemon)
-set(SCRIPTS_PATH /usr/lib/${MY_INSTALL_PREFIX}/Scripts)
-
-add_compile_definitions(CLI_EXECUTABLE=${CLI_EXECUTABLE})
+cmake_minimum_required(VERSION 3.8)
 
 if (DEFINED ENV{ROKI_USE_HARDWARE_MOCKS})
   message(INFO " Using hardware mocks")
@@ -26,19 +17,13 @@ set(PIGPIO_IGNORE ON)
 set(USE_HANDLER_MOCK OFF)
 
 if(USE_SCRIPT_MOCKS)
-  set(SCRIPTS_DIR ${SCRIPTS_PATH}/Mocks)
+  add_compile_definitions(SCRIPTS_PREFIX=Mocks/)
 else()
-  set(SCRIPTS_DIR ${SCRIPTS_PATH}/Impls)
+  add_compile_definitions(SCRIPTS_PREFIX=Impls/)
 endif()
-
-add_compile_definitions(SCRIPTS_DIR=${SCRIPTS_DIR})
 
 if(USE_HANDLER_MOCK)
   add_compile_definitions(USE_HANDLER_MOCK)
-endif()
-
-if(USE_SCRIPT_MOCKS)
-  add_compile_definitions(USE_SCRIPT_MOCKS)
 endif()
 
 project(roki-mb-daemon)
@@ -94,17 +79,3 @@ target_link_libraries(DaemonTools PUBLIC Server HandlerMock HandlerImpl CheckDef
 
 add_library(CLI Src/CLI.cpp)
 target_link_libraries(CLI PUBLIC DaemonTools Client)
-
-# Build Executables
-add_executable(${CLI_EXECUTABLE} Executables/CLIMain.cpp)
-target_link_libraries(${CLI_EXECUTABLE} PUBLIC CLI)
-
-# Installation rules
-install(TARGETS ${CLI_EXECUTABLE} RUNTIME DESTINATION /usr/bin)
-
-set(CMAKE_INSTALL_PREFIX /usr/lib/${MY_INSTALL_PREFIX})
-install(TARGETS Client)
-install(DIRECTORY Inc/ DESTINATION /usr/include/${MY_INSTALL_PREFIX})
-install(DIRECTORY Scripts/ DESTINATION ${SCRIPTS_PATH})
-
-# install(TARGETS Client )
