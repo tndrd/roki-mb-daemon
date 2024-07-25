@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Client.hpp"
-#include "DaemonTools.hpp"
-#include "RPCDefs.hpp"
+#include "roki-mb-daemon/Client.hpp"
+#include "roki-mb-daemon/DaemonTools.hpp"
+#include "roki-mb-daemon/RPCDefs.hpp"
 
 namespace Roki {
 

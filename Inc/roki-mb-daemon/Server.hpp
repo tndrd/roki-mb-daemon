@@ -43,7 +43,7 @@ struct IHandler {
   virtual std::unique_ptr<IResponce<RPCDefs::Procedures::Proc::Responce>> \
   Proc(const RPCDefs::Procedures::Proc::Request&) = 0;
 
-#include "Procedures.list"
+#include "roki-mb-daemon/Procedures.list"
 
   virtual ~IHandler() = default;
 

@@ -1,4 +1,4 @@
-#include "HandlerMock.hpp"
+#include "roki-mb-daemon/HandlerMock.hpp"
 
 using namespace Roki;
 
@@ -9,4 +9,4 @@ using namespace Roki;
     return {};                                            \
   }
 
-#include "Procedures.list"
+#include "roki-mb-daemon/Procedures.list"

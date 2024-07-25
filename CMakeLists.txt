@@ -42,7 +42,7 @@ if(USE_HANDLER_MOCK)
 endif()
 
 project(roki-mb-daemon)
-include_directories(Inc/roki-mb-daemon)
+include_directories(Inc/)
 
 # Provide pigpio
 if(USE_PIGPIO_MOCK)

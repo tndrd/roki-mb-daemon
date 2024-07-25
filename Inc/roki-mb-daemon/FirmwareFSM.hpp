@@ -5,7 +5,7 @@
 #include <thread>
 #include <vector>
 
-#include "HwUtils.hpp"
+#include "roki-mb-daemon/HwUtils.hpp"
 
 namespace Roki {
 class FirmwareFSM {

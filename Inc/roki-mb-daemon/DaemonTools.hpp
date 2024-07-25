@@ -2,9 +2,9 @@
 
 #include <fstream>
 
-#include "Server.hpp"
-#include "HandlerMock.hpp"
-#include "HandlerImpl.hpp"
+#include "roki-mb-daemon/Server.hpp"
+#include "roki-mb-daemon/HandlerMock.hpp"
+#include "roki-mb-daemon/HandlerImpl.hpp"
 
 namespace Roki {
 class DaemonTools {

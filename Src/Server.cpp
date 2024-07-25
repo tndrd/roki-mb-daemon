@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "roki-mb-daemon/Server.hpp"
 
 using namespace Roki;
 using namespace Helpers;
@@ -107,7 +107,7 @@ OVERRIDE_HANDLER(DebugThrow) { throw std::runtime_error("Debug exception"); }
     return Handler->Proc(request);                                             \
   }
 
-#include "Procedures.list"
+#include "roki-mb-daemon/Procedures.list"
 
 #undef PROCEDURE
 #undef RPC
@@ -133,7 +133,7 @@ void Server::DispatchPackage(RPCProvider& rpc,
     GenericHandler<typename RPCDefs::Procedures::Proc>(rpc, header, prefix); \
     break;
 
-#include "Procedures.list"
+#include "roki-mb-daemon/Procedures.list"
 
     PROCEDURE(Shutdown);
     PROCEDURE(Ping);

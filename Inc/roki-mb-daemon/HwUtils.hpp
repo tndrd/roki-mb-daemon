@@ -7,7 +7,7 @@
 #ifdef PIGPIO_FOUND
 #include <pigpio.h>
 #else
-#include <PiGpioStub.hpp>
+#include <roki-mb-daemon/PiGpioStub.hpp>
 #endif
 
 #include <string.h>
@@ -16,7 +16,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <Helpers.hpp>
+#include <roki-mb-daemon/Helpers.hpp>
 #include <functional>
 #include <iostream>
 #include <memory>

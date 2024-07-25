@@ -1,4 +1,4 @@
-#include "RPCDefs.hpp"
+#include "roki-mb-daemon/RPCDefs.hpp"
 
 using namespace Roki;
 using namespace Helpers;

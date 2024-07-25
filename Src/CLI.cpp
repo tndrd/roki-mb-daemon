@@ -1,4 +1,4 @@
-#include "CLI.hpp"
+#include "roki-mb-daemon/CLI.hpp"
 
 #define str(a) #a
 #define xstr(a) str(a)

@@ -4,7 +4,7 @@
 #include <mutex>
 #include <vector>
 
-#include "Server.hpp"
+#include "roki-mb-daemon/Server.hpp"
 
 namespace Roki {
 class HandlerImpl final : public IHandler {
@@ -27,7 +27,7 @@ class HandlerImpl final : public IHandler {
 #define PROCEDURE(Proc)                                 \
   std::unique_ptr<IResponce<RPC::Proc::Responce>> Proc( \
       const RPC::Proc::Request&) override;
-#include "Procedures.list"
+#include "roki-mb-daemon/Procedures.list"
 #undef PROCEDURE
 };
 }  // namespace Roki
