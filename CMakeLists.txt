@@ -6,11 +6,11 @@ function(ASSERT_VAR VARNAME)
   endif()
 endfunction()
 
-#ASSERT_VAR(SCRIPTS_DIR)
-#ASSERT_VAR(CLI_EXECUTABLE)
-#ASSERT_VAR(DAEMON_PORT_ENV)
-#ASSERT_VAR(DAEMON_LOGFILE_ENV)
-#ASSERT_VAR(DAEMON_BACKLOG_ENV)
+ASSERT_VAR(SCRIPTS_DIR)
+ASSERT_VAR(CLI_EXECUTABLE)
+ASSERT_VAR(DAEMON_PORT_ENV)
+ASSERT_VAR(DAEMON_LOGFILE_ENV)
+ASSERT_VAR(DAEMON_BACKLOG_ENV)
 
 if (DEFINED ENV{ROKI_USE_HARDWARE_MOCKS})
   message(INFO " Using hardware mocks")
@@ -42,7 +42,7 @@ if(USE_HANDLER_MOCK)
 endif()
 
 project(roki-mb-daemon)
-include_directories(Inc/)
+include_directories(Inc/roki-mb-daemon)
 
 # Provide pigpio
 if(USE_PIGPIO_MOCK)
