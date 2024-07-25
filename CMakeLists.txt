@@ -6,11 +6,11 @@ function(ASSERT_VAR VARNAME)
   endif()
 endfunction()
 
-ASSERT_VAR(SCRIPTS_DIR)
-ASSERT_VAR(CLI_EXECUTABLE)
-ASSERT_VAR(DAEMON_PORT_ENV)
-ASSERT_VAR(DAEMON_LOGFILE_ENV)
-ASSERT_VAR(DAEMON_BACKLOG_ENV)
+#ASSERT_VAR(SCRIPTS_DIR)
+#ASSERT_VAR(CLI_EXECUTABLE)
+#ASSERT_VAR(DAEMON_PORT_ENV)
+#ASSERT_VAR(DAEMON_LOGFILE_ENV)
+#ASSERT_VAR(DAEMON_BACKLOG_ENV)
 
 if (DEFINED ENV{ROKI_USE_HARDWARE_MOCKS})
   message(INFO " Using hardware mocks")
@@ -91,3 +91,8 @@ target_link_libraries(DaemonTools PUBLIC Server HandlerMock HandlerImpl CheckDef
 
 add_library(CLI Src/CLI.cpp)
 target_link_libraries(CLI PUBLIC DaemonTools Client)
+
+# Exported target
+add_library(roki-mb-daemon INTERFACE)
+target_link_libraries(roki-mb-daemon INTERFACE CLI Client)
+target_include_directories(roki-mb-daemon INTERFACE Inc/)
