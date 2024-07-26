@@ -46,11 +46,15 @@ static ResponcePtr<Msgs::Empty> MakeEmptyResponce() {
   return std::make_unique<Responce<Msgs::Empty>>();
 }
 
-void HandlerImpl::EnsureNotAcquired(const std::string& procName) {
-  LockGuard _{*Mutex};
+void HandlerImpl::EnsureNotAcquired_NoLock(const std::string& procName) {
   if (Acquired)
     throw std::runtime_error("Can't do " + procName + ": Port is acquired by " +
                              UserName + " at PID " + std::to_string(UserPid));
+}
+
+void HandlerImpl::EnsureNotAcquired(const std::string& procName) {
+  LockGuard _{*Mutex};
+  EnsureNotAcquired_NoLock();
 }
 
 ResponcePtr<Msgs::Empty> HandlerImpl::Flash(const Msgs::String& path) {
@@ -71,9 +75,12 @@ ResponcePtr<Msgs::Empty> HandlerImpl::Reset(const Msgs::Empty&) {
 }
 
 ResponcePtr<Msgs::String> HandlerImpl::Connect(const Msgs::UserData& userData) {
-  EnsureNotAcquired("Connect");
-
   LockGuard _{*Mutex};
+  EnsureNotAcquired_NoLock("Connect");
+
+  if (Firmware.GetState() != FirmwareFSM::FWState::Running)
+    throw std::runtime_error("Can't connect: firmware is not started");
+
   auto msg = std::make_unique<PortPathResponce>();
 
   msg->PathBuf = Firmware.GetPort();

@@ -18,6 +18,7 @@ class HandlerImpl final : public IHandler {
 
  private:
   void EnsureNotAcquired(const std::string& prefix);
+  void EnsureNotAcquired_NoLock(const std::string& prefix);
 
  public:
   HandlerImpl() : IHandler{}, Mutex{std::make_unique<std::mutex>()} {}
