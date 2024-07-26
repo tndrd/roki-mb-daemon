@@ -6,7 +6,7 @@
 #define str(a) #a
 #define xstr(a) str(a)
 
-#define SCRIPTS_PATH xstr(SCRIPTS_DIR)
+#define SCRIPTS_PATH xstr(DAEMON_SCRIPTS_DIR)
 
 #define BOOTLOADER_FLASH SCRIPTS_PATH "BootloaderFlash.py"
 #define BOOTLOADER_START SCRIPTS_PATH "BootloaderStart.py"

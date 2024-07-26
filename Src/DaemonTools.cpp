@@ -197,3 +197,9 @@ std::unique_ptr<IHandler> DaemonTools::MakeHandler() {
 
   return handler;
 }
+
+Client DaemonTools::Connect() {
+  if (!IsRunning()) throw FEXCEPT(std::runtime_error, "Daemon is not running");
+
+  return Client::Factory{INADDR_ANY, GetParams().Port}.Connect();
+}

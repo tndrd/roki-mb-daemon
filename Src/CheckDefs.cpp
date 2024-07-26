@@ -4,12 +4,12 @@
 #pragma message "PIGPIO_FOUND is set, building normally"
 #endif
 
-#ifndef SCRIPTS_DIR
-#error SCRIPTS_DIR is not set
+#ifndef DAEMON_SCRIPTS_DIR
+#error DAEMON_SCRIPTS_DIR is not set
 #endif
 
-#ifndef CLI_EXECUTABLE
-#error CLI_EXECUTABLE is not set
+#ifndef DAEMON_CLI_EXECUTABLE
+#error DAEMON_CLI_EXECUTABLE is not set
 #endif
 
 #ifndef DAEMON_PORT_ENV
@@ -39,8 +39,8 @@
 #define str(a) #a
 #define xstr(a) str(a)
 
-#pragma message "SCRIPTS_DIR = " xstr(SCRIPTS_DIR)
-#pragma message "CLI_EXECUTABLE = " xstr(CLI_EXECUTABLE)
+#pragma message "DAEMON_SCRIPTS_DIR = " xstr(DAEMON_SCRIPTS_DIR)
+#pragma message "DAEMON_CLI_EXECUTABLE = " xstr(DAEMON_CLI_EXECUTABLE)
 #pragma message "DAEMON_PORT_ENV = " xstr(DAEMON_PORT_ENV)
 #pragma message "DAEMON_LOGFILE_ENV = " xstr(DAEMON_LOGFILE_ENV)
 #pragma message "DAEMON_BACKLOG_ENV = " xstr(DAEMON_BACKLOG_ENV)

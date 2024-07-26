@@ -11,5 +11,6 @@ struct HandlerMock final : public IHandler {
       const RPC::Proc::Request&) override;
 #include "roki-mb-daemon/Procedures.list"
 #undef PROCEDURE
+#undef RPC
 };
 }  // namespace MbDaemon

@@ -5,6 +5,7 @@
 #include "roki-mb-daemon/HandlerImpl.hpp"
 #include "roki-mb-daemon/HandlerMock.hpp"
 #include "roki-mb-daemon/Server.hpp"
+#include "roki-mb-daemon/Client.hpp"
 
 namespace MbDaemon {
 class DaemonTools {
@@ -48,5 +49,6 @@ class DaemonTools {
   static bool IsRunning();
   void Launch();
   void RunHere();
+  Client Connect();
 };
 }  // namespace MbDaemon

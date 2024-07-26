@@ -3,6 +3,7 @@
 #define str(a) #a
 #define xstr(a) str(a)
 
+#define CLI_EXECUTABLE xstr(DAEMON_CLI_EXECUTABLE)
 #define TAB " - "
 
 using namespace std::string_literals;
@@ -117,12 +118,7 @@ DaemonCLI::DaemonCLI(const TokenBuf& tokens)
     : Tokens{tokens}, CurrentToken{0} {}
 
 Client DaemonCLI::MakeClient() {
-  DaemonTools daemon;
-
-  if (!daemon.IsRunning()) throw std::runtime_error("Daemon is not running");
-
-  Client::Factory factory{INADDR_ANY, daemon.GetParams().Port};
-  return factory.Connect();
+  return DaemonTools{}.Connect();
 }
 
 void DaemonCLI::DoChipStart() {
