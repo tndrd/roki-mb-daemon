@@ -54,7 +54,7 @@ void HandlerImpl::EnsureNotAcquired_NoLock(const std::string& procName) {
 
 void HandlerImpl::EnsureNotAcquired(const std::string& procName) {
   LockGuard _{*Mutex};
-  EnsureNotAcquired_NoLock();
+  EnsureNotAcquired_NoLock(procName);
 }
 
 ResponcePtr<Msgs::Empty> HandlerImpl::Flash(const Msgs::String& path) {
