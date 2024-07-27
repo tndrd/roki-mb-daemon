@@ -6,7 +6,7 @@ function(ASSERT_VAR VARNAME)
   endif()
 endfunction()
 
-ASSERT_VAR(DAEMON_SCRIPTS_DIR)
+ASSERT_VAR(MODULE_NAME)
 ASSERT_VAR(DAEMON_CLI_EXECUTABLE)
 ASSERT_VAR(DAEMON_PORT_ENV)
 ASSERT_VAR(DAEMON_LOGFILE_ENV)
@@ -25,13 +25,15 @@ endif()
 # Use dummy RPC handler 
 set(USE_HANDLER_MOCK OFF)
 
+set(DAEMON_SCRIPTS_PREFIX /usr/lib/${MODULE_NAME}/daemon/Scripts)
+
 if(USE_SCRIPT_MOCKS)
-  set(FINAL_SCRIPTS_PATH ${DAEMON_SCRIPTS_DIR}Mocks/)
+  set(DAEMON_SCRIPTS_DIR ${DAEMON_SCRIPTS_PREFIX}/Mocks/)
 else()
-  set(FINAL_SCRIPTS_PATH ${DAEMON_SCRIPTS_DIR}Impls/)
+  set(DAEMON_SCRIPTS_DIR ${DAEMON_SCRIPTS_PREFIX}/Impls/)
 endif()
 
-add_compile_definitions(DAEMON_SCRIPTS_DIR=${FINAL_SCRIPTS_PATH})
+add_compile_definitions(DAEMON_SCRIPTS_DIR=${DAEMON_SCRIPTS_DIR})
 add_compile_definitions(DAEMON_CLI_EXECUTABLE=${DAEMON_CLI_EXECUTABLE})
 add_compile_definitions(DAEMON_PORT_ENV=${DAEMON_PORT_ENV})
 add_compile_definitions(DAEMON_LOGFILE_ENV=${DAEMON_LOGFILE_ENV})
@@ -87,12 +89,16 @@ add_library(Client Src/Client.cpp)
 target_link_libraries(Client PUBLIC Server RPCDefs)
 
 add_library(DaemonTools Src/DaemonTools.cpp)
-target_link_libraries(DaemonTools PUBLIC Server HandlerMock HandlerImpl CheckDefs)
+target_link_libraries(DaemonTools PUBLIC Server HandlerMock HandlerImpl CheckDefs Client)
+target_include_directories(DaemonTools PUBLIC Inc/)
 
 add_library(CLI Src/CLI.cpp)
-target_link_libraries(CLI PUBLIC DaemonTools Client)
+target_link_libraries(CLI PUBLIC DaemonTools)
 
-# Exported target
-add_library(roki-mb-daemon INTERFACE)
-target_link_libraries(roki-mb-daemon INTERFACE CLI Client)
-target_include_directories(roki-mb-daemon INTERFACE Inc/)
+# CLI Executable
+add_executable(${DAEMON_CLI_EXECUTABLE} Src/CLIMain.cpp)
+target_link_libraries(${DAEMON_CLI_EXECUTABLE} PUBLIC CLI)
+install(TARGETS ${DAEMON_CLI_EXECUTABLE} RUNTIME DESTINATION /usr/bin/)
+
+# Script installation
+install(DIRECTORY Scripts/ DESTINATION ${DAEMON_SCRIPTS_PREFIX})
