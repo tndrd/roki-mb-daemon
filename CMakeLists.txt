@@ -50,9 +50,11 @@ include_directories(Inc/)
 if(USE_PIGPIO_MOCK)
   add_library(pigpio Src/PiGpioStub.cpp)
 else()
-  find_library(pigpio)
+  find_library(PIGPIO_FOUND pigpio)
+  if (NOT PIGPIO_FOUND)
+    message(FATAL_ERROR " pigpio library was not found")
+  endif()
   add_compile_definitions(PIGPIO_FOUND)
-  message(INFO " pigpio found!")
 endif()
 
 # Check compile definitions
