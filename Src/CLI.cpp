@@ -54,7 +54,7 @@ void DaemonCLI::MakeSyntaxErrorMessage(size_t tokenInd,
 
   PrintUsage();
 
-  std::cout << "See \"" << xstr(CLI_EXECUTABLE) << " " << KeyWords::Help << "\""
+  std::cout << "See \"" << CLI_EXECUTABLE << " " << KeyWords::Help << "\""
             << std::endl;
 }
 
@@ -217,7 +217,7 @@ void DaemonCLI::PutDescription(const TokenBuf& tokens,
                                const std::string& description) {
   assert(tokens.size() > 0);
 
-  std::cout << TAB "\"" xstr(CLI_EXECUTABLE) " ";
+  std::cout << TAB "\"" CLI_EXECUTABLE " ";
 
   for (int i = 0; i < tokens.size() - 1; ++i) std::cout << tokens[i] << " ";
 
@@ -267,7 +267,7 @@ void DaemonCLI::DoDaemonDebugThrow() {
   client.SoftDisconnect();
 }
 void DaemonCLI::PrintUsage() const {
-  std::cout << "Usage: " xstr(CLI_EXECUTABLE) " <COMMAND> <ARGS>" << std::endl;
+  std::cout << "Usage: " CLI_EXECUTABLE " <COMMAND> <ARGS>" << std::endl;
 }
 
 void DaemonCLI::DoHelp() {
