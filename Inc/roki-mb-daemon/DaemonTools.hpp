@@ -19,6 +19,8 @@ class DaemonTools {
     Helpers::PortType Port;
     size_t Backlog;
     std::string LogPath;
+    size_t ConnAttemptCount;
+    size_t ConnAttemptPeriod; // ms
   };
 
   struct LaunchResult {
@@ -41,6 +43,7 @@ class DaemonTools {
   LaunchResult LaunchAt(const Params& params);
 
   static std::unique_ptr<IHandler> MakeHandler();
+  static const char* GetEnv(const char* env);
 
  public:
   DaemonTools() = default;

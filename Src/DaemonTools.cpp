@@ -128,25 +128,21 @@ auto DaemonTools::LaunchAt(const Params& params) -> LaunchResult {
   exit(0);
 }
 
+const char* DaemonTools::GetEnv(const char* env) {
+  const char* ptr = std::getenv(env);
+  if(!ptr) throw FEXCEPT(std::runtime_error, "Environment variable "s + env + " is not defined");
+  return ptr;
+}
+
 auto DaemonTools::GetParams() -> Params {
   Params params;
 
-  const char* portStr = std::getenv(xstr(DAEMON_PORT_ENV));
-  const char* fileStr = std::getenv(xstr(DAEMON_LOGFILE_ENV));
-  const char* backStr = std::getenv(xstr(DAEMON_BACKLOG_ENV));
+  params.Port = std::stoul(GetEnv(xstr(DAEMON_PORT_ENV)));
+  params.Backlog = std::stoul(GetEnv(xstr(DAEMON_BACKLOG_ENV)));
+  params.LogPath = GetEnv(xstr(DAEMON_LOGFILE_ENV));
 
-  if (!portStr)
-    throw FEXCEPT(std::runtime_error, xstr(DAEMON_PORT_ENV) " is not defined");
-  if (!fileStr)
-    throw FEXCEPT(std::runtime_error,
-                  xstr(DAEMON_LOGFILE_ENV) " is not defined");
-  if (!backStr)
-    throw FEXCEPT(std::runtime_error,
-                  xstr(DAEMON_BACKLOG_ENV) " is not defined");
-
-  params.Port = std::stoul(portStr);
-  params.Backlog = std::stoul(backStr);
-  params.LogPath = fileStr;
+  params.ConnAttemptCount = std::stoul(GetEnv(xstr(DAEMON_CONN_ATTEMPT_COUNT_ENV)));
+  params.ConnAttemptPeriod = std::stoul(GetEnv(xstr(DAEMON_CONN_ATTEMPT_PERIOD_ENV)));
 
   return params;
 }
@@ -201,5 +197,14 @@ std::unique_ptr<IHandler> DaemonTools::MakeHandler() {
 Client DaemonTools::Connect() {
   if (!IsRunning()) throw FEXCEPT(std::runtime_error, "Daemon is not running");
 
-  return Client::Factory{INADDR_ANY, GetParams().Port}.Connect();
+  auto params = GetParams();
+  auto factory = Client::Factory{INADDR_ANY, params.Port};
+
+  int i = 0;
+  for(;; ++i) try {
+    return factory.Connect();
+  } catch (std::exception& e) {
+    if (i >= params.ConnAttemptCount) throw;
+    usleep(params.ConnAttemptPeriod * 1000);
+  }
 }

@@ -24,6 +24,14 @@
 #error DAEMON_BACKLOG_ENV is not defined
 #endif
 
+#ifndef DAEMON_CONN_ATTEMPT_COUNT_ENV
+#error DAEMON_ATTEMPS_ENV is not defined
+#endif
+
+#ifndef DAEMON_CONN_ATTEMPT_PERIOD_ENV
+#error DAEMON_ATTEMPS_ENV is not defined
+#endif
+
 #ifdef USE_SCRIPT_MOCKS
 #pragma message "USE_SCRIPT_MOCKS is set, building using script mocks"
 #else
