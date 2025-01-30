@@ -11,26 +11,26 @@ using namespace MbDaemon;
 using namespace Helpers;
 
 DaemonCLI::SyntaxException::SyntaxException(size_t tokenIndex,
-                                            const std::string& msg)
+                                            const std::string &msg)
     : std::runtime_error{msg}, TokenIndex{tokenIndex} {}
 
 size_t DaemonCLI::SyntaxException::GetTokenIndex() const noexcept {
   return TokenIndex;
 }
 
-const std::string& DaemonCLI::GetNextToken() {
+const std::string &DaemonCLI::GetNextToken() {
   if (CurrentToken == Tokens.size())
     throw SyntaxException{PrevToken, "Unexpected end of command"};
   PrevToken = CurrentToken;
   return Tokens[CurrentToken++];
 }
 
-void DaemonCLI::MakeErrorMessage(const std::string& msg) const noexcept {
+void DaemonCLI::MakeErrorMessage(const std::string &msg) const noexcept {
   std::cout << "Error: " << msg << std::endl;
 }
 
 void DaemonCLI::MakeSyntaxErrorMessage(size_t tokenInd,
-                                       const std::string& msg) const noexcept {
+                                       const std::string &msg) const noexcept {
   std::cout << "Syntax error: " << msg << std::endl;
   std::cout << "Reason: ";
 
@@ -71,10 +71,14 @@ void DaemonCLI::Run() try {
   if (cmd == KeyWords::Chip) {
     cmd = GetNextToken();
 
-    if (cmd == KeyWords::Start) return DoChipStart();
-    if (cmd == KeyWords::Stop) return DoChipStop();
-    if (cmd == KeyWords::Flash) return DoChipFlash(GetNextToken());
-    if (cmd == KeyWords::Status) return DoChipStatus();
+    if (cmd == KeyWords::Start)
+      return DoChipStart();
+    if (cmd == KeyWords::Stop)
+      return DoChipStop();
+    if (cmd == KeyWords::Flash)
+      return DoChipFlash(GetNextToken());
+    if (cmd == KeyWords::Status)
+      return DoChipStatus();
 
     UnknownToken();
   }
@@ -82,11 +86,16 @@ void DaemonCLI::Run() try {
   if (cmd == KeyWords::Daemon) {
     cmd = GetNextToken();
 
-    if (cmd == KeyWords::Start) return DoDaemonStart();
-    if (cmd == KeyWords::Stop) return DoDaemonStop();
-    if (cmd == KeyWords::Status) return DoDaemonStatus();
-    if (cmd == KeyWords::Kill) return DoDaemonKill();
-    if (cmd == KeyWords::Logs) return DoDaemonLogs();
+    if (cmd == KeyWords::Start)
+      return DoDaemonStart();
+    if (cmd == KeyWords::Stop)
+      return DoDaemonStop();
+    if (cmd == KeyWords::Status)
+      return DoDaemonStatus();
+    if (cmd == KeyWords::Kill)
+      return DoDaemonKill();
+    if (cmd == KeyWords::Logs)
+      return DoDaemonLogs();
 
     UnknownToken();
   }
@@ -94,32 +103,36 @@ void DaemonCLI::Run() try {
   if (cmd == KeyWords::Debug) {
     cmd = GetNextToken();
 
-    if (cmd == KeyWords::Start) return DoDaemonDebugStart();
-    if (cmd == KeyWords::Throw) return DoDaemonDebugThrow();
-    if (cmd == KeyWords::Block) return DoDaemonDebugBlock();
-    if (cmd == KeyWords::Connect) return DoDaemonDebugConnect();
-    if (cmd == KeyWords::Disconnect) return DoDaemonDebugDisconnect();
+    if (cmd == KeyWords::Start)
+      return DoDaemonDebugStart();
+    if (cmd == KeyWords::Throw)
+      return DoDaemonDebugThrow();
+    if (cmd == KeyWords::Block)
+      return DoDaemonDebugBlock();
+    if (cmd == KeyWords::Connect)
+      return DoDaemonDebugConnect();
+    if (cmd == KeyWords::Disconnect)
+      return DoDaemonDebugDisconnect();
 
     UnknownToken();
   }
 
-  if (cmd == KeyWords::Help) return DoHelp();
+  if (cmd == KeyWords::Help)
+    return DoHelp();
 
   UnknownToken();
-} catch (SyntaxException& e) {
+} catch (SyntaxException &e) {
   MakeSyntaxErrorMessage(e.GetTokenIndex(), e.what());
   throw;
-} catch (std::exception& e) {
+} catch (std::exception &e) {
   MakeErrorMessage(e.what());
   throw;
 }
 
-DaemonCLI::DaemonCLI(const TokenBuf& tokens)
+DaemonCLI::DaemonCLI(const TokenBuf &tokens)
     : Tokens{tokens}, CurrentToken{0} {}
 
-Client DaemonCLI::MakeClient() {
-  return DaemonTools{}.Connect();
-}
+Client DaemonCLI::MakeClient() { return DaemonTools{}.Connect(); }
 
 void DaemonCLI::DoChipStart() {
   Client client = MakeClient();
@@ -133,14 +146,14 @@ void DaemonCLI::DoChipStop() {
   client.SoftDisconnect();
 }
 
-void DaemonCLI::CheckFile(const std::string& path) {
+void DaemonCLI::CheckFile(const std::string &path) {
   int ret = open(path.c_str(), O_RDONLY);
   if (ret < 0)
     throw FEXCEPT(ErrnoException, "Failed to open firmware file", errno);
   close(ret);
 }
 
-void DaemonCLI::DoChipFlash(const std::string& path) {
+void DaemonCLI::DoChipFlash(const std::string &path) {
   Client client = MakeClient();
 
   Client::Msgs::String req;
@@ -159,7 +172,7 @@ void DaemonCLI::DoChipStatus() {
 
   std::cout << "Chip status: " << responce.Description.ToCxxStr() << std::endl;
 
-  const char* answer = responce.Acquired ? "Yes" : "No";
+  const char *answer = responce.Acquired ? "Yes" : "No";
 
   std::cout << "Is acquired: " << answer << std::endl;
 
@@ -171,7 +184,7 @@ void DaemonCLI::DoChipStatus() {
   client.SoftDisconnect();
 }
 
-void DaemonCLI::PutDaemonParams(const DaemonTools::Params& params) {
+void DaemonCLI::PutDaemonParams(const DaemonTools::Params &params) {
   std::cout << "Daemon parameters: " << std::endl;
   std::cout << TAB "Port:    " << params.Port << std::endl;
   std::cout << TAB "Backlog: " << params.Backlog << std::endl;
@@ -213,13 +226,14 @@ void DaemonCLI::DoDaemonLogs() {
 
 void DaemonCLI::DoDaemonDebugStart() { DaemonTools{}.RunHere(); }
 
-void DaemonCLI::PutDescription(const TokenBuf& tokens,
-                               const std::string& description) {
+void DaemonCLI::PutDescription(const TokenBuf &tokens,
+                               const std::string &description, const std::string& prefix) {
   assert(tokens.size() > 0);
 
-  std::cout << TAB "\"" CLI_EXECUTABLE " ";
+  std::cout << TAB "\"" << prefix << CLI_EXECUTABLE " ";
 
-  for (int i = 0; i < tokens.size() - 1; ++i) std::cout << tokens[i] << " ";
+  for (int i = 0; i < tokens.size() - 1; ++i)
+    std::cout << tokens[i] << " ";
 
   std::cout << tokens.back();
 
@@ -260,7 +274,7 @@ void DaemonCLI::DoDaemonDebugThrow() {
 
   try {
     client.Call<Client::Proc::DebugThrow>({});
-  } catch (Client::ProcException& e) {
+  } catch (Client::ProcException &e) {
     std::cout << "Error arrived: " << e.what() << std::endl;
   }
 
@@ -273,14 +287,14 @@ void DaemonCLI::PrintUsage() const {
 void DaemonCLI::DoHelp() {
   using KW = KeyWords;
 
-  std::cout << "MbDaemon Motherboard Firmware Manager CLI" << std::endl;
+  std::cout << "\nmbctl : Motherboard Firmware Manager CLI" << std::endl;
   std::cout << "Author: Lekhterev V.V. @tndrd, Starkit 2024"
                "\n"
             << std::endl;
   PrintUsage();
   std::cout << std::endl << "List of available commands: " << std::endl;
 
-  PutDescription({KW::Daemon, KW::Start}, "Starts daemon");
+  PutDescription({KW::Daemon, KW::Start}, "Starts daemon", "sudo -E ");
   PutDescription({KW::Daemon, KW::Stop}, "Stops daemon");
   PutDescription({KW::Daemon, KW::Status}, "Prints status info on daemon");
   PutDescription({KW::Daemon, KW::Logs}, "Prints daemon logs");
@@ -325,7 +339,7 @@ void DaemonCLI::DoDaemonStatus() {
 
   try {
     client.Call<Client::Proc::Ping>({});
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cout << "Failed to ping daemon: " << e.what() << std::endl;
     throw;
   }
@@ -334,13 +348,21 @@ void DaemonCLI::DoDaemonStatus() {
   client.SoftDisconnect();
 }
 
-void DaemonCLI::Execute(const TokenBuf& tokens) {
+void DaemonCLI::Execute(const TokenBuf &tokens) {
   DaemonCLI cli{tokens};
+  
+  // Empty call, print help
+  if (tokens.size() == 1) {
+    cli.DoHelp();
+    return;
+  }
+
   cli.Run();
 }
 
-void DaemonCLI::Execute(int argc, char* argv[]) {
-  if (!argv) throw FEXCEPT(std::runtime_error, "argv is NULL");
+void DaemonCLI::Execute(int argc, char *argv[]) {
+  if (!argv)
+    throw FEXCEPT(std::runtime_error, "argv is NULL");
 
   TokenBuf tokens(argc, "");
 

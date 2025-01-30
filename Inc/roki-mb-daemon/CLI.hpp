@@ -55,7 +55,7 @@ class DaemonCLI {
   void MakeSyntaxErrorMessage(size_t tokenInd,
                               const std::string& msg) const noexcept;
   void UnknownToken();
-  void PutDescription(const TokenBuf& tokens, const std::string& description);
+  void PutDescription(const TokenBuf& tokens, const std::string& description, const std::string& prefix="");
   void PrintUsage() const;
   void Run();
   void CheckFile(const std::string& path);
