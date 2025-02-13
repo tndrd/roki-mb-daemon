@@ -1,0 +1,1 @@
+print("Flash mock is called")

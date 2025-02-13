@@ -24,6 +24,11 @@ else()
   set(USE_PIGPIO_MOCK OFF)
 endif()
 
+if (DEFINED ENV{ROKI_USE_MANAGER_MOCK})
+  message(INFO " Using firmware manager mock")
+  set(USE_SCRIPT_MOCKS ON)
+endif()
+
 # Use dummy RPC handler 
 set(USE_HANDLER_MOCK OFF)
 

@@ -1,1 +1,1 @@
-print("MockPort", end="")
+print("/dev/ttyAMA1", end="")
