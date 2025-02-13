@@ -84,6 +84,7 @@ ResponcePtr<Msgs::String> HandlerImpl::Connect(const Msgs::UserData& userData) {
   auto msg = std::make_unique<PortPathResponce>();
 
   msg->PathBuf = Firmware.GetPort();
+  Helpers::ClearPort(msg->PathBuf);
 
   msg->Data = msg->PathBuf.c_str();
   msg->Size = msg->PathBuf.size();

@@ -1,4 +1,5 @@
 #include "roki-mb-daemon/Helpers.hpp"
+#include <fcntl.h>
 
 using namespace MbDaemon::Helpers;
 
@@ -58,3 +59,18 @@ static void MbDaemon::Helpers::SetSigMask(int how) {
 
 void TermTools::MakeRed() { std::cout << "\033[91m"; }
 void TermTools::MakeDefault() { std::cout << "\033[39m"; }
+
+void MbDaemon::Helpers::ClearPort(const std::string& path) {
+  int ret = open(path.c_str(), O_RDONLY);
+  if (ret < 0) throw ErrnoException("open()", errno);
+
+  DescriptorWrapper fd {ret};
+
+  char buf[256] = {};
+
+  while(1) {
+    ret = read(fd.Get(), buf, sizeof(buf));
+    if (ret < 0) throw ErrnoException("read()", errno);
+    if (ret == 0) break;
+  }
+}

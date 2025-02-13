@@ -116,5 +116,7 @@ struct TermTools {
 
 using LockGuard = std::lock_guard<std::mutex>;
 
+void ClearPort(const std::string& path);
+
 }  // namespace Helpers
 }  // namespace MbDaemon
