@@ -11,6 +11,7 @@
 #define BOOTLOADER_FLASH SCRIPTS_PATH "BootloaderFlash.py"
 #define BOOTLOADER_START SCRIPTS_PATH "BootloaderStart.py"
 #define BOOTLOADER_FIND SCRIPTS_PATH "BootloaderFind.py"
+#define BOOTLOADER_RESET SCRIPTS_PATH "BootloaderReset.py"
 
 #define PYTHON_EXECUTABLE "python3"
 
@@ -62,16 +63,12 @@ void HwUtils::Execute(const std::string& cmd, int outFd, bool closeFd) {
                       std::to_string(exitCode));
 }
 
+// In previous version this function
+// was implemented using libpigpio
+// However, it did mess up audio amplifier's I2S,
+// resulting in speakers being burnt down.
 void HwUtils::ChipReset() {
-  if (gpioInitialise() < 0)
-    throw FEXCEPT(std::runtime_error, "Failed to initialize GPIO");
-
-  gpioSetMode(RESET_PIN, PI_OUTPUT);
-  gpioWrite(RESET_PIN, 1);
-  usleep(SIGNAL_WIDTH_US);
-  gpioWrite(RESET_PIN, 0);
-
-  gpioTerminate();
+  Execute(PYTHON_RUN(BOOTLOADER_RESET));
 }
 
 void HwUtils::BootloaderFlash(const std::string& firmware) {
