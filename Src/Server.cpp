@@ -48,6 +48,8 @@ void Server::CleanupRoutine(Server* self) {
   static std::string prefix = "CleanupRoutine: ";
   assert(self);
 
+  BlockAllSignals();
+
   Server& server = *self;
 
   server.Logger << prefix << "Started" << std::endl;
@@ -85,7 +87,7 @@ void Server::CleanupRoutine(Server* self) {
   Server::HandlerImpl<RPC::Proc>(const typename RPC::Proc::Request& request)
 
 OVERRIDE_HANDLER(Shutdown) {
-  RequestShutdown();
+  pthread_kill(TID, SIGTERM);
   return {};
 }
 
@@ -248,25 +250,6 @@ void Server::HandlerRoutine(Server* self, ServerSocket&& newSocket,
     }
 }
 
-void Server::ShutdownRoutine() {
-  Logger << MainThreadPrefix << "Starting Shutdown Routine" << std::endl;
-
-  JoinablesMutex.lock();
-  DoShutdown = true;
-  JoinablesMutex.unlock();
-
-  for (auto& pair : Handlers) {
-    int ret = pthread_cancel(pair.second.native_handle());
-
-    if (ret == 0) continue;
-
-    Logger << MainThreadPrefix << "Warning: Failed to cancel handler #"
-           << pair.first << ": " << "errno #" << ret << ": " << strerror(ret)
-           << std::endl;
-  }
-  ReadyToJoin.notify_all();
-}
-
 ServerSocket Server::CreateHandlerSocket() {
   for (;;) {
     CurrentPort++;
@@ -282,22 +265,25 @@ ServerSocket Server::CreateHandlerSocket() {
   }
 }
 
-void Server::RequestShutdown() {
-  DoShutdown = true;
-  pthread_cancel(TID);
-}
-
 void Server::Run() {
   Logger << MainThreadPrefix << "Starting..." << std::endl;
-  Logger << MainThreadPrefix << "Setting up signal handlers..." << std::endl;
+  Logger << MainThreadPrefix << "Main thread PID is " << getpid() << std::endl;
 
   sigset_t set;
   sigfillset(&set);
   pthread_sigmask(SIG_BLOCK, &set, NULL);
 
-  static Server* self = this;
+  Logger << MainThreadPrefix << "Starting dispatch thread..." << std::endl;
+  std::thread dispatch([this]{DispatchRoutine();});
 
-  auto handler = [](int) { self->RequestShutdown(); };
+  Logger << MainThreadPrefix << "Starting cleanup thread..." << std::endl;
+  std::thread cleanup(Server::CleanupRoutine, this);
+
+  Logger << MainThreadPrefix << "Setting up signal handlers..." << std::endl;
+
+  static Server* self;
+  self = this;
+  auto handler = [](int) { self->DoShutdown = true; };
 
   std::signal(SIGTERM, handler);
   std::signal(SIGINT, handler);
@@ -307,26 +293,48 @@ void Server::Run() {
   sigaddset(&set, SIGINT);
   pthread_sigmask(SIG_UNBLOCK, &set, NULL);
 
-  Logger << MainThreadPrefix << "Starting cleanup thread..." << std::endl;
-  std::thread cleanup(Server::CleanupRoutine, this);
+  while (!DoShutdown) pause();
 
-  Helpers::Defer _{[this, &cleanup]() {
-    ShutdownRoutine();
-    cleanup.join();
-  }};
+  // Shutdown dispatch
+  Logger << MainThreadPrefix << "Stopping dispatch..." << std::endl;
+  pthread_cancel(dispatch.native_handle());
+  dispatch.join();
 
-  Logger << MainThreadPrefix << "Waiting for connections..." << std::endl;
+  // Shutdown handlers
+  Logger << MainThreadPrefix << "Stopping handlers..." << std::endl;
+  for (auto& pair : Handlers) {
+    int ret = pthread_cancel(pair.second.native_handle());
+
+    if (ret == 0) continue;
+
+    Logger << MainThreadPrefix << "Warning: Failed to cancel handler #"
+           << pair.first << ": " << "errno #" << ret << ": " << strerror(ret)
+           << std::endl;
+  }
+  ReadyToJoin.notify_all();
+
+  // Wait for cleanup to join handlers
+  Logger << MainThreadPrefix << "Cleaning up..." << std::endl;
+  cleanup.join();
+
+  Logger << MainThreadPrefix << "Shutdown complete" << std::endl;
+}
+
+void Server::DispatchRoutine() {
+  static const char* prefix = "Dispatch: ";
+
+  Logger << prefix << "Waiting for connections..." << std::endl;
   while (!DoShutdown) {
     try {
       Connection helloConn = Socket.Accept();
 
-      Logger << MainThreadPrefix << "Accepted connection from "
+      Logger << prefix << "Accepted connection from "
              << helloConn.GetAddr() << std::endl;
 
       size_t newId = CurrentId++;
       auto handlerSocket = CreateHandlerSocket();
 
-      Logger << MainThreadPrefix << "Creating handler on port "
+      Logger << prefix << "Creating handler on port "
              << handlerSocket.GetPort() << "..." << std::endl;
 
       std::mutex readyMutex;
@@ -347,14 +355,14 @@ void Server::Run() {
       HelloMessage hello{handlerSocket.GetPort()};
       hello.Send(helloConn.GetFd());
 
-      Logger << MainThreadPrefix << "Handler #" << newId << " created"
+      Logger << prefix << "Handler #" << newId << " created"
              << std::endl;
     } catch (std::exception& e) {
-      Logger << MainThreadPrefix << "Exception occured: " << e.what()
+      Logger << prefix << "Exception occured: " << e.what()
              << std::endl;
       break;
     } catch (ForcedUnwind&) {
-      Logger << MainThreadPrefix << "Shutdown received" << std::endl;
+      Logger << prefix << "Shutdown received" << std::endl;
       throw;
     }
   }

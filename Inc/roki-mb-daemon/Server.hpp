@@ -98,8 +98,7 @@ class Server {
   static void HandlerRoutine(Server* self, ServerSocket&& newSocket,
                              HandlerId id, std::condition_variable&, bool&);
   static void CleanupRoutine(Server* self);
-
-  void RequestShutdown();
+  void DispatchRoutine();
   void ShutdownRoutine();
 
  public:
