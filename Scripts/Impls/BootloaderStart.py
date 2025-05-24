@@ -4,6 +4,8 @@ import serial
 import RPi.GPIO as GPIO
 import time
 
+LOGPATH = "/tmp/bclog.txt"
+
 Motherboard_PCB_Name = "PCB_NAME = MOTHERBOARD-V.1.0\r\n"  #Ответ от платы Motherboard
 BlueCoin_PCB_Name    = "PCB_NAME = BlueCoin-V.1.0\r\n"     #Ответ от платы BlueCoin
 
@@ -79,7 +81,7 @@ if __name__ == '__main__':
                 print(response[0:len(response) - 4], "is opened on", COM_List[COM_Index], "device")
                 COM_BlueCoin = serial.Serial(COM_List[COM_Index], 921600,  timeout = 2)
     
-    with open("/home/pi/Desktop/bclog.txt", "w") as f:
+    with open(LOGPATH, "w") as f:
         f.write("At least I'm here")
     
     print(" ")
@@ -90,20 +92,20 @@ if __name__ == '__main__':
     response = COM_Motherboard.readline().decode(encoding = 'UTF-8')
     print("Motherboard: ", response)
 
-    with open("/home/pi/Desktop/bclog.txt", "w") as f:
+    with open(LOGPATH, "w") as f:
         f.write("Almost there")
     
     try:
         COM_BlueCoin.write("CMD:GET_CONNECTION_STATE\r\n".encode('ascii'))
     except Exception as e:
-        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+        with open(LOGPATH, "w") as f:
             f.write("WriteState: " + repr(e))
         quit()
     
     try:
         response = COM_BlueCoin.readline().decode(encoding = 'UTF-8')
     except Exception as e:
-        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+        with open(LOGPATH, "w") as f:
             f.write("ReadState: " + repr(e))
         quit()
     
@@ -112,19 +114,19 @@ if __name__ == '__main__':
     try:
         COM_BlueCoin.write("CMD:START_FW\r\n".encode('ascii'))
     except Exception as e:
-        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+        with open(LOGPATH, "w") as f:
             f.write("WriteStart: " + repr(e))
         quit()
     
     try:
         response = COM_BlueCoin.readline().decode(encoding = 'UTF-8')
     except Exception as e:
-        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+        with open(LOGPATH, "w") as f:
             f.write("ReadStart: " + repr(e) + " " + str(type(COM_BlueCoin)))
         quit()
     
     print("BlueCoin: ", response)
     
-    with open("/home/pi/Desktop/bclog.txt", "w") as f:
+    with open(LOGPATH, "w") as f:
         f.write("BlueCoin: " + response)
  
