@@ -10,12 +10,22 @@ BlueCoin_PCB_Name    = "PCB_NAME = BlueCoin-V.1.0\r\n"     #Ответ от пл
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 STM32_RST_PIN = 6
-GPIO.setup(STM32_RST_PIN,GPIO.OUT) # пин RST для STM32
-GPIO.output(STM32_RST_PIN, 0)    # устанавливаем пин RST для STM32 в лог 0
-GPIO.output(STM32_RST_PIN, 1)    # устанавливаем пин RST для STM32 в лог 0
-time.sleep(0.2)
-GPIO.output(STM32_RST_PIN, 0)    # устанавливаем пин RST для STM32 в лог 0
+BCOIN_RST_PIN = 9
 
+GPIO.setup(STM32_RST_PIN,GPIO.OUT) # пин RST для STM32
+GPIO.setup(BCOIN_RST_PIN,GPIO.OUT) # пин RST для STM32
+
+GPIO.output(STM32_RST_PIN, 0)    # устанавливаем пин RST для STM32 в лог 0
+GPIO.output(BCOIN_RST_PIN, 0)    # устанавливаем пин RST для STM32 в лог 0
+time.sleep(0.2)
+
+GPIO.output(STM32_RST_PIN, 1)    # устанавливаем пин RST для STM32 в лог 0
+GPIO.output(BCOIN_RST_PIN, 1)    # устанавливаем пин RST для STM32 в лог 0
+time.sleep(0.2)
+
+GPIO.output(STM32_RST_PIN, 0)    # устанавливаем пин RST для STM32 в лог 0
+GPIO.output(BCOIN_RST_PIN, 0)    # устанавливаем пин RST для STM32 в лог 0
+time.sleep(0.2)
 
 def serial_ports():
     """
@@ -46,26 +56,33 @@ if __name__ == '__main__':
     time.sleep(0.2)
     
     COM_List = serial_ports()
-    COM_Motherboard = None
     print("List of available serial ports: ", COM_List)    
-    # Проверяем на каком COM порту сидит наша плата
-    for COM_Index in range(len(COM_List)):
-        try:
-            print(f"Asking {COM_List[COM_Index]}...")
-            ser = serial.Serial(COM_List[COM_Index], 921600, timeout = 0.5, write_timeout=0.5)
-            ser.write("CMD:GET_PCB_NAME\r\n".encode('ascii'))
-            response = ser.readline().decode(encoding = 'UTF-8')        
-        except:
-            #print("except")
-            continue
-        if (response == Motherboard_PCB_Name):
-            print(response[0:len(response) - 4], "is opened on", COM_List[COM_Index], "device")          
-            COM_Motherboard = serial.Serial(COM_List[COM_Index], 921600,  timeout = 0.5)
     
-    if (COM_Motherboard is None):
-      print("Motherboard not found")
-      sys.exit(1)
-
+    COM_Motherboard = None
+    COM_BlueCoin = None
+    
+    # Проверяем на каком COM порту сидит наша плата
+    while (COM_Motherboard is None or COM_BlueCoin is None):
+        for COM_Index in range(len(COM_List)):
+            try:
+                ser = serial.Serial(COM_List[COM_Index], 921600, timeout=2)
+                ser.write("CMD:GET_PCB_NAME\r\n".encode('ascii'))
+                response = ser.readline().decode(encoding = 'UTF-8')        
+            except:
+                #print("except")
+                continue
+            if (response == Motherboard_PCB_Name):
+                print(response[0:len(response) - 4], "is opened on", COM_List[COM_Index], "device")          
+                COM_Motherboard = serial.Serial(COM_List[COM_Index], 921600,  timeout = 2)
+            
+            if (response == BlueCoin_PCB_Name):
+                print(response[0:len(response) - 4], "is opened on", COM_List[COM_Index], "device")
+                COM_BlueCoin = serial.Serial(COM_List[COM_Index], 921600,  timeout = 2)
+    
+    with open("/home/pi/Desktop/bclog.txt", "w") as f:
+        f.write("At least I'm here")
+    
+    print(" ")
     COM_Motherboard.write("CMD:GET_CONNECTION_STATE\r\n".encode('ascii'))
     response = COM_Motherboard.readline().decode(encoding = 'UTF-8')
     print("Motherboard_PCB", response)
@@ -73,4 +90,41 @@ if __name__ == '__main__':
     response = COM_Motherboard.readline().decode(encoding = 'UTF-8')
     print("Motherboard: ", response)
 
-    sys.exit(0)
+    with open("/home/pi/Desktop/bclog.txt", "w") as f:
+        f.write("Almost there")
+    
+    try:
+        COM_BlueCoin.write("CMD:GET_CONNECTION_STATE\r\n".encode('ascii'))
+    except Exception as e:
+        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+            f.write("WriteState: " + repr(e))
+        quit()
+    
+    try:
+        response = COM_BlueCoin.readline().decode(encoding = 'UTF-8')
+    except Exception as e:
+        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+            f.write("ReadState: " + repr(e))
+        quit()
+    
+    print("BlueCoin_PCB ",response)
+    
+    try:
+        COM_BlueCoin.write("CMD:START_FW\r\n".encode('ascii'))
+    except Exception as e:
+        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+            f.write("WriteStart: " + repr(e))
+        quit()
+    
+    try:
+        response = COM_BlueCoin.readline().decode(encoding = 'UTF-8')
+    except Exception as e:
+        with open("/home/pi/Desktop/bclog.txt", "w") as f:
+            f.write("ReadStart: " + repr(e) + " " + str(type(COM_BlueCoin)))
+        quit()
+    
+    print("BlueCoin: ", response)
+    
+    with open("/home/pi/Desktop/bclog.txt", "w") as f:
+        f.write("BlueCoin: " + response)
+ 
